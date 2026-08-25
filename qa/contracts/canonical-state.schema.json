@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://grokbuild.local/qa/canonical-state.schema.json",
+  "title": "Canonical observable GrokBuild state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "projects", "sessions", "settings", "rpcTranscript", "persistedArtifacts", "menuState"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "cli": { "type": "object" },
+    "projects": { "type": "array", "items": { "type": "object" } },
+    "sessions": { "type": "array", "items": { "type": "object" } },
+    "selectedProject": { "type": "string" },
+    "selectedSession": { "type": "string" },
+    "settings": { "type": "object" },
+    "rpcTranscript": { "type": "array", "items": { "type": "object" } },
+    "persistedArtifacts": { "type": "array", "items": { "type": "object" } },
+    "menuState": { "type": "object" }
+  }
+}
+

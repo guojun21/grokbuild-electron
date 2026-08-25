@@ -1,0 +1,33 @@
+[
+  {
+    "id": "KD-9001",
+    "scenario": "PAR-013/pending-fixture",
+    "surface": "state",
+    "selector": "fixture.partial",
+    "priority": "P1",
+    "expectedSwift": "The fixture is complete.",
+    "actualElectron": "The fixture is partial.",
+    "reason": "This pending record exercises release blocking.",
+    "owner": "qa-fixture",
+    "issue": "fixture/PAR-013",
+    "introducedAt": "2026-08-25",
+    "expiresOn": "2026-12-31",
+    "approvalStatus": "pending"
+  },
+  {
+    "id": "KD-9002",
+    "scenario": "PAR-023/approved-fixture",
+    "surface": "visual",
+    "selector": "fixture.intentional",
+    "priority": "P2",
+    "expectedSwift": "The fixture uses the Swift presentation.",
+    "actualElectron": "The fixture uses the approved Electron presentation.",
+    "reason": "This approved record exercises intentional-difference linkage.",
+    "owner": "qa-fixture",
+    "issue": "fixture/PAR-023",
+    "introducedAt": "2026-08-25",
+    "expiresOn": "2026-12-31",
+    "approvalStatus": "approved",
+    "approvedBy": "fixture-reviewer"
+  }
+]

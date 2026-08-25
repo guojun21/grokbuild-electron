@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "matrix": "matrix.md",
+  "entries": [
+    {
+      "id": "PAR-001",
+      "priority": "P0",
+      "status": "verified",
+      "implementationPaths": ["evidence/implementation.ts"],
+      "testPaths": ["evidence/parity.test.ts"],
+      "artifactPaths": [],
+      "gap": "No known fixture gap."
+    },
+    {
+      "id": "PAR-013",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": ["evidence/implementation.ts"],
+      "testPaths": ["evidence/parity.test.ts"],
+      "artifactPaths": [],
+      "gap": "The fixture intentionally remains partial."
+    },
+    {
+      "id": "PAR-023",
+      "priority": "P2",
+      "status": "intentional-difference",
+      "implementationPaths": ["evidence/implementation.ts"],
+      "testPaths": [],
+      "artifactPaths": ["evidence/artifact.json"],
+      "gap": "The fixture has an approved P2 difference."
+    }
+  ]
+}

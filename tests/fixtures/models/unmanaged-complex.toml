@@ -1,0 +1,18 @@
+# User-owned Grok configuration. Every byte in this prefix must survive edits.
+theme = "system"
+
+[models]
+default = "user-model"
+
+[model.user-model]
+model = "user/upstream"
+name = "User-owned model"
+context_window = 64000
+
+[model_providers.user-provider]
+base_url = "https://user.example.test/v1"
+env_key = ["USER_PRIMARY", "USER_FALLBACK"]
+api_backend = "chat_completions"
+
+[unrelated.deep]
+unknown = { keep = true, order = [3, 2, 1] }

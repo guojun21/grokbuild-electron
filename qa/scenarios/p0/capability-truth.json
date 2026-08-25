@@ -1,0 +1,68 @@
+{
+  "$schema": "../../contracts/scenario.schema.json",
+  "id": "capability-truth",
+  "priority": "P0",
+  "reference": {
+    "swiftCommit": "060de18dc1b9e680cf43781b9cd5ce3b85c0faf8",
+    "grokVersion": "1.0.5"
+  },
+  "profile": {
+    "clock": "2026-08-25T00:00:00Z",
+    "locale": "en_US",
+    "timeZone": "UTC",
+    "appearance": "light",
+    "reduceMotion": true
+  },
+  "workspaceFixture": "empty-project",
+  "steps": [
+    {
+      "expectClient": {
+        "method": "initialize",
+        "params": {
+          "protocolVersion": 1,
+          "clientInfo": {
+            "name": "grokbuild-electron",
+            "version": "0.1.0"
+          },
+          "clientCapabilities": {
+            "fs": {
+              "readTextFile": true,
+              "writeTextFile": true
+            },
+            "terminal": true
+          }
+        }
+      }
+    },
+    {
+      "expectClient": {
+        "method": "session/new",
+        "params": {
+          "mcpServers": []
+        }
+      }
+    },
+    {
+      "action": {
+        "driver": "sendPrompt",
+        "text": "Probe strict capabilities"
+      }
+    },
+    {
+      "expectClient": {
+        "method": "session/prompt",
+        "params": {
+          "prompt": [
+            {
+              "type": "text",
+              "text": "Probe strict capabilities"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "assert": {
+    "rpc": "qa/baselines/electron/capability-truth.rpc.json"
+  }
+}

@@ -1,0 +1,10 @@
+[
+  { "entry": "client->agent initialize" },
+  { "entry": "agent->client response:initialize" },
+  { "entry": "client->agent session/new" },
+  { "entry": "agent->client response:session/new" },
+  { "entry": "client->agent session/prompt" },
+  { "entry": "agent->client session/update:agent_message_chunk" },
+  { "entry": "agent->client session/update:usage_update" },
+  { "entry": "agent->client response:session/prompt" }
+]

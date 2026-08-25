@@ -1,0 +1,770 @@
+{
+  "schemaVersion": 1,
+  "matrix": "docs/PARITY_MATRIX.md",
+  "entries": [
+    {
+      "id": "PAR-001",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/acp/AcpWorkerClient.ts",
+        "src/main/acp/PublicSessionError.ts",
+        "src/main/grok/GrokCliService.ts",
+        "src/main/grok/GrokDoctorService.ts",
+        "src/shared/doctor.ts",
+        "src/renderer/src/components/GrokDoctorSettings.tsx"
+      ],
+      "testPaths": [
+        "tests/e2e/capabilities.spec.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/doctor-retry.spec.ts",
+        "tests/unit/grok-doctor-service.test.ts",
+        "tests/unit/grok-cli-service.test.ts",
+        "tests/unit/session-manager.test.ts"
+      ],
+      "artifactPaths": [
+        "qa/baselines/electron/capability-truth.rpc.json"
+      ],
+      "gap": "CLI discovery, ACP startup, a read-only four-check Doctor, and signed-out remediation UI are covered; cached credential presence is not server-validated, and packaged auth transitions plus timeout-specific remediation remain."
+    },
+    {
+      "id": "PAR-002",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/workspaces/ProjectOrderPolicy.ts",
+        "src/main/workspaces/ProjectOpenService.ts",
+        "src/main/workspaces/WorkspaceHealthService.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/ipc.ts",
+        "src/shared/bridge.ts",
+        "src/renderer/src/App.tsx",
+        "src/renderer/src/components/Sidebar.tsx",
+        "src/shared/schemas.ts",
+        "src/shared/workspaceHealth.ts"
+      ],
+      "testPaths": [
+        "tests/unit/app-controller-workspace-health.test.ts",
+        "tests/unit/app-controller-project-order.test.ts",
+        "tests/unit/project-order-policy.test.ts",
+        "tests/unit/project-open-service.test.ts",
+        "tests/unit/main-project-actions-ipc.test.ts",
+        "tests/unit/preload-bridge.test.ts",
+        "tests/unit/project-session-lifecycle.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/project-actions.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Project lifecycle, health recovery, pin-group ordering, restart persistence, and fixed-target Open in are covered through strict IPC and Electron E2E. Unlike Swift LaunchServices lookup, nonstandard app install locations may be hidden; an app disappearing after discovery returns a fixed error instead of falling back to Finder."
+    },
+    {
+      "id": "PAR-003",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/acp/AcpClient.ts",
+        "src/main/acp/AcpConnection.ts",
+        "src/main/acp/AcpWorkerClient.ts",
+        "src/main/acp/SessionManager.ts",
+        "src/main/acp/worker.ts",
+        "src/main/persistence/AppStateStore.ts",
+        "src/main/migration/SwiftStateMigrationService.ts",
+        "src/main/migration/mergeSwiftState.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/shared/schemas.ts",
+        "src/shared/ipc.ts",
+        "src/shared/bridge.ts",
+        "src/preload/index.ts",
+        "src/main/ipc.ts",
+        "src/renderer/src/components/Sidebar.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/app-controller-session-activity.test.ts",
+        "tests/unit/app-controller-fork.test.ts",
+        "tests/unit/app-controller-lifecycle.test.ts",
+        "tests/unit/mock-grok.test.ts",
+        "tests/unit/project-session-lifecycle.test.ts",
+        "tests/unit/session-manager.test.ts",
+        "tests/unit/state-store.test.ts",
+        "tests/unit/swift-state-merge.test.ts",
+        "tests/unit/swift-state-migration.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/e2e/session-fork.spec.ts",
+        "tests/e2e/session-resume.spec.ts",
+        "tests/e2e/app.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Session create/duplicate/select/close, durable project selection, lazy load, stale fallback, pins, bounded LRU, and canonical fork->child load have v5/UI/E2E coverage. Main-owned activity protection now retains authoritative live schedule/background/workflow/goal work and releases it on terminal/offline state. Gaps: the full five-session mixed-state matrix, and remote-child orphan risk if the app crashes after fork acceptance or the workspace is adversarially replaced during the RPC."
+    },
+    {
+      "id": "PAR-004",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/shared/acp/activity.ts",
+        "src/shared/acp/events.ts",
+        "src/shared/acp/trustedUpdates.ts",
+        "src/shared/acp/usage.ts",
+        "src/shared/acp/usageFormat.ts",
+        "src/shared/chat/reducer.ts",
+        "src/main/migration/SwiftStateMigrationService.ts",
+        "src/renderer/src/components/Transcript.tsx",
+        "src/renderer/src/components/Composer.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/activity-summary.test.ts",
+        "tests/unit/events.test.ts",
+        "tests/unit/reducer.test.ts",
+        "tests/unit/swift-state-migration.test.ts",
+        "tests/unit/turn-token-usage.test.ts",
+        "tests/unit/usage-format.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/transcript-truth.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "qa/baselines/electron/stream-rich.state.json",
+        "qa/baselines/electron/stream-rich.rpc.json",
+        "tests/fixtures/swift-state/sanitized.plist",
+        "tests/e2e/visual.spec.ts-snapshots/conversation-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/context-usage-popover-1200x800-darwin.png"
+      ],
+      "gap": "Live and imported text/activity streams, fixed-label hook summaries, bounded hook and token counts, separate context and last-turn usage, and late-chunk ownership are covered; exhaustive future assistant-protocol sanitation remains."
+    },
+    {
+      "id": "PAR-005",
+      "priority": "P0",
+      "status": "verified",
+      "implementationPaths": [
+        "src/main/acp/TerminalHost.ts",
+        "src/main/acp/FsHost.ts",
+        "src/main/acp/AcpClient.ts"
+      ],
+      "testPaths": [
+        "tests/unit/terminal-host.test.ts",
+        "tests/unit/fs-host.test.ts",
+        "tests/unit/acp-client.test.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "No known gap in the deterministic reverse terminal/filesystem host contract."
+    },
+    {
+      "id": "PAR-006",
+      "priority": "P0",
+      "status": "verified",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/renderer/src/components/Transcript.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/permissions.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/e2e/app.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "No known gap in permission FIFO, duplicate handling, and Auto accept priority; plan/question interactions remain isolated from Auto accept."
+    },
+    {
+      "id": "PAR-007",
+      "priority": "P0",
+      "status": "verified",
+      "implementationPaths": [
+        "src/main/acp/AcpClient.ts",
+        "src/main/acp/AcpWorkerClient.ts",
+        "src/main/acp/SessionManager.ts",
+        "src/main/acp/worker.ts",
+        "src/main/AppController.ts",
+        "src/shared/acp/events.ts",
+        "src/shared/acp/interactions.ts",
+        "src/shared/acp/trustedUpdates.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/shared/chat/reducer.ts",
+        "src/renderer/src/components/Transcript.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/events.test.ts",
+        "tests/unit/interactions.test.ts",
+        "tests/unit/reducer.test.ts",
+        "tests/unit/session-manager.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/transcript-truth.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "No known gap in plan/question interaction handling or authoritative current-mode synchronization."
+    },
+    {
+      "id": "PAR-008",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/acp/AcpClient.ts",
+        "src/main/acp/AcpWorkerClient.ts",
+        "src/main/acp/worker.ts",
+        "src/shared/agents.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/renderer/src/components/Sidebar.tsx",
+        "src/renderer/src/components/Composer.tsx"
+      ],
+      "testPaths": [
+        "tests/e2e/capabilities.spec.ts",
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/acp-worker-client.test.ts",
+        "tests/unit/app-controller-agents.test.ts",
+        "tests/unit/session-manager.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/saved-agents.spec.ts"
+      ],
+      "artifactPaths": [
+        "qa/baselines/electron/capability-truth.rpc.json"
+      ],
+      "gap": "Model, mode, per-session effort, rollback, and capability parsing work. A local Saved Agent can now bind to one chat, supply a strict inline profile to session/new and session/load, survive restart/resume, and recycle only affected idle workers after profile changes. Still partial: reasoning effort is not project-scoped, linked TOML roles have no atomic transaction/rollback, broader pre-handshake capability truth remains, and no signed-in real-CLI Saved Agent profile smoke is committed."
+    },
+    {
+      "id": "PAR-009",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/attachments/AttachmentBroker.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/attachments.ts",
+        "src/renderer/src/components/Composer.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/app-controller-attachments.test.ts",
+        "tests/unit/attachment-broker.test.ts",
+        "tests/unit/attachment-prompt-blocks.test.ts",
+        "tests/e2e/app.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Secure file/image selection, opaque leases, renderer chips, Swift-order ACP content blocks, and no-byte/no-path persistence canaries are covered end to end; mentions, slash commands, goal creation/control, per-session queue, and steer remain. Read-only CLI-reported goal state is tracked under PAR-014."
+    },
+    {
+      "id": "PAR-010",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/migration/SwiftStateMigrationService.ts",
+        "src/main/migration/SwiftStateImportBroker.ts",
+        "src/main/migration/mergeSwiftState.ts",
+        "src/main/persistence/AppStateStore.ts",
+        "src/renderer/src/components/SwiftImportSettings.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/swift-state-migration.test.ts",
+        "tests/unit/swift-state-import-broker.test.ts",
+        "tests/unit/swift-state-merge.test.ts",
+        "tests/unit/state-store.test.ts",
+        "tests/e2e/session-resume.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/fixtures/swift-state/sanitized.plist"
+      ],
+      "gap": "Strict manual plist preview/merge into schema v5 and v1/v2/v3/v4 state migration exist; automatic source discovery, source markers, chat_history reconciliation/tail repair, and longer-assistant preservation remain."
+    },
+    {
+      "id": "PAR-011",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/git/DashboardInspector.ts",
+        "src/main/grok/GrokCliService.ts",
+        "src/main/history/SessionHistoryBroker.ts",
+        "src/main/persistence/AppStateStore.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/bridge.ts",
+        "src/shared/dashboard.ts",
+        "src/shared/ipc.ts",
+        "src/shared/sessionHistory.ts",
+        "src/shared/sessionPresentation.ts",
+        "src/renderer/src/components/ModalSurface.tsx",
+        "src/renderer/src/components/SessionDashboardPanel.tsx",
+        "src/renderer/src/components/SessionHistoryPanel.tsx",
+        "src/renderer/src/components/Sidebar.tsx",
+        "src/renderer/src/App.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/app-controller-dashboard.test.ts",
+        "tests/unit/app-controller-session-history.test.ts",
+        "tests/unit/dashboard-inspector.test.ts",
+        "tests/unit/grok-cli-session-history.test.ts",
+        "tests/unit/ipc.test.ts",
+        "tests/unit/main-dashboard-ipc.test.ts",
+        "tests/unit/main-session-history-ipc.test.ts",
+        "tests/unit/preload-bridge.test.ts",
+        "tests/unit/project-session-lifecycle.test.ts",
+        "tests/unit/session-history-broker.test.ts",
+        "tests/unit/session-presentation.test.ts",
+        "tests/unit/agent-renderer.test.ts",
+        "tests/unit/state-store.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/dashboard-project-isolation.spec.ts",
+        "tests/e2e/saved-agents.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/conversation-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/context-usage-popover-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/sessions-dashboard-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/sessions-history-1200x800-darwin.png"
+      ],
+      "gap": "Swift-priority status/unread, local project/title plus bound Saved Agent name/mission search, Agent badges, schema-v5 settled/pinned shelves, six-group current-project Dashboard with bounded Git projection and a live PAR-014 Scheduled source, distinct opaque-token CLI History list/search/ACP-open/native-delete, native modal focus, and four PAR-011 visual baselines are covered. Remaining: no signed-in real-CLI two-session background-completion/focus/open smoke is committed."
+    },
+    {
+      "id": "PAR-012",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/mcp/McpService.ts",
+        "src/main/grok/GrokCliService.ts",
+        "src/renderer/src/components/McpSettings.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/mcp-service.test.ts",
+        "tests/unit/mock-grok-mcp.test.ts",
+        "tests/e2e/app.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Redacted CLI-owned MCP CRUD and Doctor are covered; active-session config refresh and Browser/Computer Use temporary integration, restart, skill, and permission flows remain."
+    },
+    {
+      "id": "PAR-013",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/agents/AgentRosterStore.ts",
+        "src/main/agents/GrokAgentCatalogService.ts",
+        "src/main/memory/MemoryBroker.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/agents.ts",
+        "src/shared/agentCatalog.ts",
+        "src/shared/memory.ts",
+        "src/shared/bridge.ts",
+        "src/renderer/src/components/SettingsPanel.tsx",
+        "src/renderer/src/components/AgentsSettings.tsx",
+        "src/renderer/src/components/MemorySettings.tsx",
+        "src/renderer/src/components/McpSettings.tsx",
+        "src/main/mcp/McpService.ts"
+      ],
+      "testPaths": [
+        "tests/unit/agents.test.ts",
+        "tests/unit/agent-roster-store.test.ts",
+        "tests/unit/grok-agent-catalog-service.test.ts",
+        "tests/unit/app-controller-agents.test.ts",
+        "tests/unit/agent-renderer.test.ts",
+        "tests/unit/ipc.test.ts",
+        "tests/unit/main-agent-ipc.test.ts",
+        "tests/unit/main-memory-ipc.test.ts",
+        "tests/unit/memory-renderer.test.tsx",
+        "tests/unit/preload-bridge.test.ts",
+        "tests/unit/mcp-service.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/saved-agents.spec.ts",
+        "tests/e2e/memory.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/settings-agents-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/settings-memory-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/settings-memory-private-1200x800-darwin.png"
+      ],
+      "gap": "Application, MCP, update, import, Saved Agents, Privacy, and Memory panes exist. Agents has a revisioned roster/recovery/editor/starter flow and read-only CLI catalog. Memory has a staged durable policy, bounded browser/preview, global remember, native-confirmed session deletion, and private state. Remaining: targeted TOML, secret storage, providers/models, linked role CRUD/rollback, compatibility, hooks, skills, and plugins."
+    },
+    {
+      "id": "PAR-014",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/acp/AcpClient.ts",
+        "src/main/acp/SessionActivityProjection.ts",
+        "src/main/acp/SessionManager.ts",
+        "src/shared/acp/sessionActivity.ts",
+        "src/shared/acp/sessionActivityUpdates.ts",
+        "src/shared/acp/trustedUpdates.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/shared/models.ts",
+        "src/shared/schemas.ts",
+        "src/renderer/src/App.tsx",
+        "src/renderer/src/components/SessionActivityPanel.tsx",
+        "src/renderer/src/components/SessionDashboardPanel.tsx",
+        "src/renderer/src/styles.css"
+      ],
+      "testPaths": [
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/app-controller-session-activity.test.ts",
+        "tests/unit/session-activity-projection.test.ts",
+        "tests/unit/session-manager.test.ts",
+        "tests/unit/trusted-activity-updates.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/tasks-workflows-1200x800-darwin.png"
+      ],
+      "gap": "Read-only CLI-owned activity is wired end to end: typed scheduler/background/workflow/goal updates are primary, the pinned scheduler fallback is bounded, replay/live/offline state is explicit, public/persisted state excludes raw IDs, live work owns LRU protection, and E2E/visual evidence covers the UI. Still partial: no controls or short-lived action tokens, no per-activity Saved Agent assignment, no real signed-in CLI scheduler/workflow/goal smoke, and no Quit continuation guarantee."
+    },
+    {
+      "id": "PAR-015",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/renderer/src/components/SafeMarkdown.tsx",
+        "src/shared/acp/events.ts",
+        "src/shared/security/redaction.ts"
+      ],
+      "testPaths": [
+        "tests/unit/markdown.test.ts",
+        "tests/unit/events.test.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Sanitized GFM and basic code/table rendering exist; smashed tables, Mermaid, LaTeX discrimination, comprehensive protocol sanitation, and scoped local image/video delivery remain."
+    },
+    {
+      "id": "PAR-016",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/AppController.ts",
+        "src/main/git/DashboardInspector.ts",
+        "src/main/git/GitService.ts",
+        "src/main/ipc.ts",
+        "src/shared/dashboard.ts",
+        "src/renderer/src/components/SessionDashboardPanel.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/app-controller-dashboard.test.ts",
+        "tests/unit/dashboard-inspector.test.ts",
+        "tests/unit/git-service.test.ts",
+        "tests/unit/main-dashboard-ipc.test.ts",
+        "tests/e2e/dashboard-project-isolation.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/sessions-dashboard-1200x800-darwin.png"
+      ],
+      "gap": "The selected-project branch/worktree/dirty projection reaches Dashboard through zero-argument strict IPC, stability checks, unit tests, and a temporary-repository isolation E2E. Read-only diff summary/fixed-scope patch APIs remain main-only; checkout, worktree creation, full diff review, commit, and PR actions remain."
+    },
+    {
+      "id": "PAR-017",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/updates/UpdateService.ts",
+        "src/main/updates/UpdateCoordinator.ts",
+        "src/main/updates/UpdateOperationLock.ts",
+        "src/main/updates/ReleaseFeedConfig.ts",
+        "src/main/updates/MacAppIdentityService.ts",
+        "src/main/updates/TrustedUpdateStager.ts",
+        "src/main/updates/TrustedAppArchiveVerifier.ts",
+        "src/main/updates/TrustedSquirrelUpdater.ts",
+        "src/main/updates/AppUpdateInstallCoordinator.ts",
+        "src/main/updates/CliUpdateInstallCoordinator.ts",
+        "src/main/grok/GrokCliService.ts",
+        "src/main/AppController.ts",
+        "src/main/index.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/renderer/src/components/UpdateSettings.tsx",
+        "src/shared/bridge.ts",
+        "src/shared/ipcChannels.ts",
+        "src/shared/updates.ts",
+        "build/update-feed.json",
+        "scripts/build/configure-update-feed.mjs",
+        ".github/workflows/release.yml"
+      ],
+      "testPaths": [
+        "tests/unit/update-service.test.ts",
+        "tests/unit/update-coordinator.test.ts",
+        "tests/unit/update-operation-lock.test.ts",
+        "tests/unit/release-feed-config.test.ts",
+        "tests/unit/mac-app-identity-service.test.ts",
+        "tests/unit/trusted-update-stager.test.ts",
+        "tests/unit/trusted-app-archive-verifier.test.ts",
+        "tests/unit/trusted-squirrel-updater.test.ts",
+        "tests/unit/app-update-install-coordinator.test.ts",
+        "tests/unit/cli-update-install-coordinator.test.ts",
+        "tests/unit/grok-cli-service.test.ts",
+        "tests/unit/app-controller-update-quiescence.test.ts",
+        "tests/unit/main-update-install-ipc.test.ts",
+        "tests/unit/mock-grok-update.test.ts",
+        "tests/unit/release-app-zip-verifier.test.ts",
+        "tests/e2e/app-update.spec.ts",
+        "tests/e2e/cli-update-lifecycle.spec.ts",
+        "tests/e2e/app.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "App/CLI zero-argument native-confirmed installs work. App: one-shot authority, trust checks, quiescence, Squirrel replacement. CLI: strict semver/prerelease, target-pinned command, exact local version authority, best-effort feed display, ambiguous-result retained gates/guarded quit, startup/quit barriers. Missing: signed App old-to-new/recovery evidence for a real release, real managed-CLI capture/rollback, skip/dismiss parity, copied-archive digest proof, and post-launch crash rollback."
+    },
+    {
+      "id": "PAR-018",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/index.ts",
+        "src/main/shell/trayMenu.ts",
+        "src/main/shell/revealWindowTarget.ts"
+      ],
+      "testPaths": [
+        "tests/unit/tray-menu.test.ts",
+        "tests/unit/reveal-window-target.test.ts",
+        "tests/e2e/macos-shell.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Close/reopen, Dock, single-instance, tray basics, Settings routing, and quit cleanup exist; full menu/tray states, 1100x720 minimum, finish sound, voice input, and microphone permission flow remain."
+    },
+    {
+      "id": "PAR-019",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/notifications/SessionNotificationCoordinator.ts",
+        "src/main/notifications/TargetOnlyNotificationAdapter.ts",
+        "src/main/index.ts"
+      ],
+      "testPaths": [
+        "tests/unit/session-notifications.test.ts",
+        "tests/e2e/macos-shell.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Content-free lifecycle notifications, deduplication, foreground suppression, cancel guard, and click routing are covered; permission-denied state and packaged dedicated-user TCC smoke remain."
+    },
+    {
+      "id": "PAR-020",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/acp/PublicSessionError.ts",
+        "src/main/acp/SessionManager.ts",
+        "src/main/AppController.ts",
+        "src/main/persistence/AppStateStore.ts",
+        "src/renderer/src/App.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/session-manager.test.ts",
+        "tests/unit/app-controller-lifecycle.test.ts",
+        "tests/unit/app-controller-retry.test.ts",
+        "tests/unit/state-store.test.ts",
+        "tests/e2e/session-resume.spec.ts",
+        "tests/e2e/doctor-retry.spec.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Public error taxonomy, corrupt-state quarantine, stale-load fallback, Doctor remediation, and deduplicated explicit retry without prompt replay are covered; queued-delivery recovery and complete packaged crash/fault scenarios remain."
+    },
+    {
+      "id": "PAR-021",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/index.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/ipc.ts",
+        "src/shared/security/redaction.ts"
+      ],
+      "testPaths": [
+        "tests/unit/ipc.test.ts",
+        "tests/unit/events.test.ts",
+        "tests/e2e/app.spec.ts",
+        "scripts/qa/check-boundaries.mjs"
+      ],
+      "artifactPaths": [],
+      "gap": "Renderer sandboxing, narrow bridge validation, URL policy, MCP canary redaction, and display sanitizers exist; a comprehensive runtime canary through stderr, malformed stdout, RPC data, transcript, state, notifications, and logs remains."
+    },
+    {
+      "id": "PAR-022",
+      "priority": "P0",
+      "status": "partial",
+      "implementationPaths": [
+        "package.json",
+        "build/entitlements.mac.plist",
+        "build/update-feed.json",
+        "scripts/build/configure-update-feed.mjs",
+        "scripts/qa/lib/packaged-smoke-environment.mjs",
+        ".github/workflows/release.yml",
+        "src/main/updates/ReleaseFeedConfig.ts",
+        "src/main/updates/MacAppIdentityService.ts",
+        "src/main/updates/TrustedUpdateStager.ts",
+        "src/main/updates/TrustedAppArchiveVerifier.ts",
+        "src/main/updates/TrustedSquirrelUpdater.ts",
+        "src/main/updates/AppUpdateInstallCoordinator.ts",
+        "src/main/index.ts",
+        "src/main/migration/SwiftStateMigrationService.ts",
+        "src/main/migration/SwiftStateImportBroker.ts"
+      ],
+      "testPaths": [
+        "scripts/qa/verify-macos-package.mjs",
+        "scripts/qa/smoke-packaged.mjs",
+        "tests/unit/packaged-smoke-environment.test.ts",
+        "tests/unit/release-app-zip-verifier.test.ts",
+        "tests/unit/release-feed-config.test.ts",
+        "tests/unit/mac-app-identity-service.test.ts",
+        "tests/unit/trusted-update-stager.test.ts",
+        "tests/unit/trusted-app-archive-verifier.test.ts",
+        "tests/unit/trusted-squirrel-updater.test.ts",
+        "tests/unit/app-update-install-coordinator.test.ts",
+        "tests/unit/swift-state-migration.test.ts",
+        "tests/unit/swift-state-import-broker.test.ts"
+      ],
+      "artifactPaths": [],
+      "gap": "Package hardening, sealed feed, secret-free unsigned smoke, credential cleanup, exact ZIP final trust verification, archive trust, state import, and Squirrel handoff work; CLI install does not supply App release proof. Missing: local Developer ID, real published App capture, mounted-DMG first launch, installed-App Gatekeeper/notary, signed old-to-new recovery, TCC/voice, and post-launch crash rollback. No signed positive artifacts exist."
+    },
+    {
+      "id": "PAR-023",
+      "priority": "P2",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/agents/AgentRosterStore.ts",
+        "src/main/agents/GrokAgentCatalogService.ts",
+        "src/main/AppController.ts",
+        "src/main/acp/AcpClient.ts",
+        "src/main/acp/AcpWorkerClient.ts",
+        "src/main/acp/worker.ts",
+        "src/main/index.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/agents.ts",
+        "src/shared/agentCatalog.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/shared/bridge.ts",
+        "src/shared/ipc.ts",
+        "src/shared/ipcChannels.ts",
+        "src/shared/models.ts",
+        "src/shared/schemas.ts",
+        "src/renderer/src/agentPresentation.ts",
+        "src/renderer/src/components/AgentAvatar.tsx",
+        "src/renderer/src/components/AgentsSettings.tsx",
+        "src/renderer/src/components/Composer.tsx",
+        "src/renderer/src/components/SettingsPanel.tsx",
+        "src/renderer/src/components/Sidebar.tsx"
+      ],
+      "testPaths": [
+        "tests/unit/agents.test.ts",
+        "tests/unit/agent-roster-store.test.ts",
+        "tests/unit/grok-agent-catalog-service.test.ts",
+        "tests/unit/app-controller-agents.test.ts",
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/acp-worker-client.test.ts",
+        "tests/unit/session-manager.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/unit/agent-renderer.test.ts",
+        "tests/unit/ipc.test.ts",
+        "tests/unit/main-agent-ipc.test.ts",
+        "tests/unit/preload-bridge.test.ts",
+        "tests/e2e/saved-agents.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/settings-agents-1200x800-darwin.png"
+      ],
+      "gap": "Implemented: versioned CAS roster/recovery, idempotent starter crew, per-session binding with duplicate/fork inheritance, strict new/load ACP profiles/recycling, deletion preserving chats, read-only project CLI catalog, and unit/Electron/visual evidence. Still partial: no atomic linked TOML role transaction or signed-in Grok inspect/profile smoke; same-UID writers retain a final pathname ABA race; local Saved Agents and CLI catalog entries stay separate with no conversion/link."
+    },
+    {
+      "id": "PAR-024",
+      "priority": "P2",
+      "status": "missing",
+      "implementationPaths": [],
+      "testPaths": [],
+      "artifactPaths": [],
+      "gap": "Custom model providers and the managed Cursor bridge have no implementation or evidence."
+    },
+    {
+      "id": "PAR-025",
+      "priority": "P2",
+      "status": "partial",
+      "implementationPaths": [
+        "src/main/memory/MemoryBroker.ts",
+        "src/main/AppController.ts",
+        "src/main/acp/AcpClient.ts",
+        "src/main/acp/AcpWorkerClient.ts",
+        "src/main/acp/worker.ts",
+        "src/main/index.ts",
+        "src/main/ipc.ts",
+        "src/preload/index.ts",
+        "src/shared/memory.ts",
+        "src/shared/models.ts",
+        "src/shared/schemas.ts",
+        "src/shared/ipc.ts",
+        "src/shared/ipcChannels.ts",
+        "src/shared/bridge.ts",
+        "src/shared/acp/workerProtocol.ts",
+        "src/renderer/src/components/MemorySettings.tsx",
+        "src/renderer/src/components/SettingsPanel.tsx",
+        "src/renderer/src/memoryPresentation.ts",
+        "src/renderer/src/styles.css"
+      ],
+      "testPaths": [
+        "tests/unit/memory-broker.test.ts",
+        "tests/unit/app-controller-memory-runtime.test.ts",
+        "tests/unit/main-memory-ipc.test.ts",
+        "tests/unit/memory-renderer.test.tsx",
+        "tests/unit/acp-client.test.ts",
+        "tests/unit/acp-worker-client.test.ts",
+        "tests/unit/workerProtocol.test.ts",
+        "tests/unit/ipc.test.ts",
+        "tests/unit/preload-bridge.test.ts",
+        "tests/unit/state-store.test.ts",
+        "tests/unit/app-controller-session-history.test.ts",
+        "tests/e2e/memory.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/settings-memory-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/settings-memory-private-1200x800-darwin.png"
+      ],
+      "gap": "Deterministic main broker/v5 flag/recycle/stop, strict IPC, Settings/Privacy, E2E, and baselines work. Partial: no signed-in CLI 1.0.5 isolated HOME/GROK_HOME smoke, native openat CAS for the same-UID final-path race, or Quit continuation proof. P2: stop lacks utility-exit/process-group proof; clear cannot revoke an already-resolved read/delete; delete confirms a well-shaped stale/foreign token before capability revalidation."
+    },
+    {
+      "id": "PAR-026",
+      "priority": "P1",
+      "status": "partial",
+      "implementationPaths": [
+        "src/shared/privacy.ts",
+        "src/shared/models.ts",
+        "src/shared/ipc.ts",
+        "src/main/AppController.ts",
+        "src/main/ipc.ts",
+        "src/renderer/src/App.tsx",
+        "src/renderer/src/components/AgentAvatar.tsx",
+        "src/renderer/src/components/AgentsSettings.tsx",
+        "src/renderer/src/components/Composer.tsx",
+        "src/renderer/src/components/SessionDashboardPanel.tsx",
+        "src/renderer/src/components/SessionHistoryPanel.tsx",
+        "src/renderer/src/components/SettingsPanel.tsx",
+        "src/renderer/src/components/Sidebar.tsx",
+        "src/renderer/src/styles.css"
+      ],
+      "testPaths": [
+        "tests/unit/privacy.test.ts",
+        "tests/unit/ipc.test.ts",
+        "tests/unit/main-session-history-ipc.test.ts",
+        "tests/unit/project-session-lifecycle.test.ts",
+        "tests/e2e/app.spec.ts",
+        "tests/e2e/visual.spec.ts"
+      ],
+      "artifactPaths": [
+        "tests/e2e/visual.spec.ts-snapshots/conversation-1200x800-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/privacy-core-1100x720-light-darwin.png",
+        "tests/e2e/visual.spec.ts-snapshots/privacy-core-1100x720-dark-darwin.png"
+      ],
+      "gap": "Implemented: strict persisted display-only Privacy Mode; project/session/path/worktree/branch/Saved Agent/History projection across pixel, title, ARIA, input, and native-dialog surfaces; raw-domain/no-reconnect/restart proof; DOM/input/full-AX canary scans; and 1100x720 light/dark real reduced-motion baselines. Still partial: the full normal/private overlay matrix, OS reduced-motion proof, menu keyboard semantics, transcript live-region isolation, and packaged native-picker capture evidence."
+    }
+  ]
+}

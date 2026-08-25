@@ -1,0 +1,174 @@
+ObjC.import('stdlib')
+
+function run(argv) {
+  const command = argv[0] || 'preflight'
+  const systemEvents = Application('System Events')
+  const host = Application.currentApplication()
+  host.includeStandardAdditions = true
+
+  if (command === 'preflight') {
+    const enabled = Boolean(safeCall(() => systemEvents.uiElementsEnabled(), false))
+    // Querying a real AX collection is intentional: macOS may report UI elements
+    // enabled yet reject System Events automation with -25211 for this host.
+    const processes = systemEvents.applicationProcesses()
+    const axWindowProbe = processes.length > 0 ? processes[0].windows().length : 0
+    return JSON.stringify({ uiElementsEnabled: enabled, processCount: processes.length, axWindowProbe })
+  }
+
+  const pid = Number(argv[1])
+  if (!Number.isFinite(pid) || pid <= 0) throw new Error('A positive target pid is required')
+  const process = processForPid(systemEvents, pid)
+  process.frontmost = true
+
+  if (command === 'ping') {
+    return JSON.stringify({
+      pid,
+      name: safeString(() => process.name()),
+      windowCount: safeCall(() => process.windows().length, 0)
+    })
+  }
+  if (command === 'snapshot') {
+    const budget = { remaining: Number(argv[2] || 2_000) }
+    return JSON.stringify({
+      role: 'AXApplication',
+      title: safeString(() => process.name()),
+      children: safeCall(() => process.windows(), []).map((window) => snapshotElement(window, 0, 12, budget))
+    })
+  }
+  if (command === 'contains') {
+    const needle = argv[2] || ''
+    const element = findElement(process, (candidate) =>
+      accessibleStrings(candidate).some((value) => value.includes(needle))
+    )
+    return JSON.stringify({ found: Boolean(element), needle })
+  }
+  if (command === 'click') {
+    const label = argv[2] || ''
+    const element = findElement(process, (candidate) => {
+      if (safeString(() => candidate.role()) !== 'AXButton') return false
+      return accessibleStrings(candidate).some((value) => value === label || value.includes(label))
+    })
+    if (!element) throw new Error(`Button not found: ${label}`)
+    press(element)
+    return JSON.stringify({ clicked: label })
+  }
+  if (command === 'set-text') {
+    const hint = argv[2] || ''
+    const text = argv[3] || ''
+    const element = findElement(process, (candidate) => {
+      const role = safeString(() => candidate.role())
+      if (role !== 'AXTextField' && role !== 'AXTextArea') return false
+      return accessibleStrings(candidate).some((value) => value.includes(hint))
+    })
+    if (!element) throw new Error(`Text input not found: ${hint}`)
+    press(element)
+    systemEvents.keystroke('a', { using: ['command down'] })
+    systemEvents.keystroke(text)
+    return JSON.stringify({ filled: hint })
+  }
+  if (command === 'submit') {
+    systemEvents.keyCode(36)
+    return JSON.stringify({ submitted: true })
+  }
+  if (command === 'new-session') {
+    systemEvents.keystroke('n', { using: ['command down'] })
+    return JSON.stringify({ shortcut: 'command-n' })
+  }
+  if (command === 'choose-folder') {
+    const path = argv[2] || ''
+    if (!path.startsWith('/')) throw new Error('Folder path must be absolute')
+    systemEvents.keystroke('g', { using: ['command down', 'shift down'] })
+    host.delay(0.25)
+    systemEvents.keystroke(path)
+    systemEvents.keyCode(36)
+    host.delay(0.35)
+    systemEvents.keyCode(36)
+    return JSON.stringify({ choseFolder: path })
+  }
+  if (command === 'quit') {
+    systemEvents.keystroke('q', { using: ['command down'] })
+    return JSON.stringify({ quit: true })
+  }
+  throw new Error(`Unknown AX driver command: ${command}`)
+}
+
+function processForPid(systemEvents, pid) {
+  const matches = systemEvents.applicationProcesses.whose({ unixId: pid })()
+  if (!matches || matches.length === 0) throw new Error(`Application process ${pid} is not visible to System Events`)
+  return matches[0]
+}
+
+function findElement(process, predicate) {
+  const roots = safeCall(() => process.windows(), [])
+  const queue = roots.slice()
+  let visited = 0
+  while (queue.length > 0 && visited < 4_000) {
+    const element = queue.shift()
+    visited += 1
+    if (safeCall(() => predicate(element), false)) return element
+    const children = safeCall(() => element.uiElements(), [])
+    for (const child of children) queue.push(child)
+  }
+  return null
+}
+
+function snapshotElement(element, depth, maxDepth, budget) {
+  if (budget.remaining <= 0) return { role: 'AXTruncated', title: 'node budget exhausted' }
+  budget.remaining -= 1
+  const node = {}
+  for (const key of ['role', 'subrole', 'title', 'description', 'value']) {
+    const value = safeCall(() => element[key](), undefined)
+    const normalized = normalizeValue(value)
+    if (normalized !== undefined && normalized !== '') node[key] = normalized
+  }
+  for (const key of ['enabled', 'focused']) {
+    const value = safeCall(() => element[key](), undefined)
+    if (typeof value === 'boolean') node[key] = value
+  }
+  const position = normalizePair(safeCall(() => element.position(), undefined))
+  const size = normalizePair(safeCall(() => element.size(), undefined))
+  if (position) node.position = position
+  if (size) node.size = size
+  if (depth < maxDepth && budget.remaining > 0) {
+    const children = safeCall(() => element.uiElements(), [])
+    if (children.length > 0) {
+      node.children = children.map((child) => snapshotElement(child, depth + 1, maxDepth, budget))
+    }
+  }
+  return node
+}
+
+function accessibleStrings(element) {
+  return ['title', 'description', 'value']
+    .map((key) => normalizeValue(safeCall(() => element[key](), undefined)))
+    .filter((value) => typeof value === 'string' && value.length > 0)
+}
+
+function press(element) {
+  try {
+    element.actions.byName('AXPress').perform()
+  } catch (_error) {
+    element.click()
+  }
+}
+
+function normalizeValue(value) {
+  if (value === undefined || value === null) return undefined
+  if (typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number') return value
+  if (Array.isArray(value)) return value.map(normalizeValue)
+  try { return String(value) } catch (_error) { return undefined }
+}
+
+function normalizePair(value) {
+  if (!Array.isArray(value) || value.length < 2) return undefined
+  return [Number(value[0]), Number(value[1])]
+}
+
+function safeString(action) {
+  const value = safeCall(action, '')
+  return value === undefined || value === null ? '' : String(value)
+}
+
+function safeCall(action, fallback) {
+  try { return action() } catch (_error) { return fallback }
+}

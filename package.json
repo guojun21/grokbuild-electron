@@ -1,0 +1,130 @@
+{
+  "name": "grokbuild-electron",
+  "version": "0.1.0",
+  "description": "A parity-driven Vite, React, TypeScript and Electron client for the Grok Build CLI",
+  "author": "oasmet",
+  "license": "Apache-2.0",
+  "private": true,
+  "packageManager": "npm@11.12.1",
+  "engines": {
+    "node": ">=24 <26"
+  },
+  "type": "module",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "lint": "npm run qa:security && npm run typecheck",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "test:visual": "npm run build && GROKBUILD_VISUAL=1 playwright test tests/e2e/visual.spec.ts",
+    "qa:contracts": "node scripts/qa/verify-contracts.mjs",
+    "qa:swift-reference": "swift test --package-path .reference/grok-build-desktop",
+    "qa:swift-blackbox": "node scripts/qa/run-swift-blackbox.mjs",
+    "qa:swift-blackbox:preflight": "node scripts/qa/run-swift-blackbox.mjs --preflight-only",
+    "qa:security": "node scripts/qa/check-boundaries.mjs",
+    "qa:report": "node scripts/qa/generate-report.mjs",
+    "qa:compare": "node scripts/qa/compare-canonical.mjs",
+    "qa:release-readiness": "node scripts/qa/verify-release-readiness.mjs",
+    "qa": "npm run reference:fetch && npm run reference:verify && npm run qa:swift-reference && npm run qa:contracts && npm run qa:security && npm run test && npm run test:e2e && npm run qa:report",
+    "reference:fetch": "node scripts/qa/fetch-reference.mjs",
+    "reference:verify": "node scripts/qa/verify-reference.mjs",
+    "package:mac": "npm run build && node scripts/build/clean-dist.mjs && electron-builder --mac dir dmg --arm64",
+    "verify:package": "node scripts/qa/verify-macos-package.mjs",
+    "smoke:package": "node scripts/qa/smoke-packaged.mjs",
+    "smoke:real-cli": "node scripts/qa/smoke-real-cli.mjs",
+    "dist:mac": "npm run qa && npm run package:mac && npm run verify:package"
+  },
+  "dependencies": {
+    "smol-toml": "1.8.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@electron/fuses": "2.1.3",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "@vitejs/plugin-react": "5.2.0",
+    "electron": "43.4.1",
+    "electron-builder": "26.15.3",
+    "electron-vite": "5.0.0",
+    "lucide-react": "1.34.0",
+    "playwright": "1.62.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "typescript": "7.0.2",
+    "vite": "7.3.6",
+    "vitest": "4.1.11"
+  },
+  "build": {
+    "appId": "com.oasmet.grokbuild-electron",
+    "productName": "GrokBuild Electron",
+    "asar": true,
+    "afterPack": "scripts/build/after-pack.cjs",
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "NOTICE",
+        "to": "NOTICE"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "build/update-feed.json",
+        "to": "update-feed.json"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "hardenedRuntime": true,
+      "notarize": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "icon": "build/icon.icns",
+      "extendInfo": {
+        "LSMinimumSystemVersion": "26.0",
+        "NSHighResolutionCapable": true
+      }
+    },
+    "dmg": {
+      "title": "GrokBuild Electron",
+      "artifactName": "GrokBuild-Electron-${version}-${arch}.${ext}",
+      "writeUpdateInfo": false
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/rimusz/grok-build-desktop.git",
+  "tag": "v0.3.2",
+  "commit": "060de18dc1b9e680cf43781b9cd5ce3b85c0faf8",
+  "license": "Apache-2.0",
+  "role": "Behavioral and visual reference only; the Electron runtime does not bundle this source."
+}
+
