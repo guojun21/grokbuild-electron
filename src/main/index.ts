@@ -148,6 +148,11 @@ if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
     dashboardInspector: new DashboardInspector(),
     acpFactory: (options) => new AcpWorkerClient(join(__dirname, 'acp-worker.js'), options),
     generatedImagePreview,
+    // E2E drives a mock CLI that cannot write into the real grok session
+    // store, so the trusted root moves into the seeded workspace there.
+    ...(process.env.GROKBUILD_E2E === '1' && process.env.GROKBUILD_E2E_PROJECT_PATH
+      ? { generatedImageRoot: join(process.env.GROKBUILD_E2E_PROJECT_PATH, '.grok-generated') }
+      : {}),
     diagnosticsLogger: logger
   })
   await controller.initialize()

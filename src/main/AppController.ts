@@ -3,7 +3,7 @@ import { constants } from 'node:fs'
 import { basename } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { normalizeSessionUpdate, type NormalizedAcpEvent } from '../shared/acp/events'
-import { resolveGeneratedImagePath } from './grok/generatedImages'
+import { defaultGeneratedImageRoot, resolveGeneratedImagePath } from './grok/generatedImages'
 import { persistedStateSchema } from '../shared/schemas'
 import {
   appendSessionError,
@@ -129,6 +129,8 @@ export interface AppControllerOptions {
   memoryBroker?: Pick<MemoryBroker, 'list' | 'read' | 'remember' | 'deleteSession' | 'clear'>
   /** Bounded preview re-encode for validated generated-image paths (needs Electron; injected so tests run without it). */
   generatedImagePreview?: (path: string) => string | undefined
+  /** Trusted root a generated-image path must resolve inside; defaults to the CLI's session store. */
+  generatedImageRoot?: string
   /** Diagnostics sink for CLI stderr, worker exits, and surfaced session errors. */
   diagnosticsLogger?: {
     log(level: 'info' | 'warn' | 'error', event: string, fields?: Record<string, unknown>): void
@@ -3034,7 +3036,10 @@ export class AppController extends EventEmitter<{
   private withValidatedGeneratedImage(event: NormalizedAcpEvent): NormalizedAcpEvent {
     if (event.type !== 'tool_update' || event.generatedImagePath === undefined) return event
     const { generatedImagePath, ...rest } = event
-    const path = resolveGeneratedImagePath(generatedImagePath)
+    const path = resolveGeneratedImagePath(
+      generatedImagePath,
+      this.options.generatedImageRoot ?? defaultGeneratedImageRoot()
+    )
     if (!path) return rest
     const preview = this.options.generatedImagePreview?.(path)
     return { ...rest, image: preview ? { path, preview } : { path } }

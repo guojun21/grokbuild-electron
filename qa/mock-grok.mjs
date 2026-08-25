@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
+
+/** Smallest valid PNG; the generated-image scenario writes it as a real file on disk. */
+const QA_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 
 const args = process.argv.slice(2)
 if (args[0] === 'update' && args[1] === '--check' && args.includes('--json')) {
@@ -698,6 +702,103 @@ input.on('line', (line) => {
         update(sessionId, {
           sessionUpdate: 'agent_message_chunk',
           content: { type: 'text', text: profile.resultText }
+        })
+        completePrompt(message.id, sessionId)
+        break
+      }
+      // Turn-integrity scenarios run before the shared thought chunk so the
+      // narration cases produce exactly the transcript shape under test.
+      if (/narrate with tools/i.test(text)) {
+        update(sessionId, {
+          sessionUpdate: 'tool_call',
+          toolCallId: 'qa-narrate-tool',
+          title: 'list_dir',
+          rawInput: '{"path":"."}'
+        })
+        update(sessionId, {
+          sessionUpdate: 'tool_call_update',
+          toolCallId: 'qa-narrate-tool',
+          status: 'completed',
+          rawOutput: { summary: 'Listed the workspace.' }
+        })
+        update(sessionId, {
+          sessionUpdate: 'agent_message_chunk',
+          content: { type: 'text', text: 'Scanning the assets folder... one moment. Done: nothing matched.' }
+        })
+        completePrompt(message.id, sessionId)
+        break
+      }
+      if (/narrate without tools/i.test(text)) {
+        update(sessionId, {
+          sessionUpdate: 'agent_message_chunk',
+          content: { type: 'text', text: 'Sure — scanning the assets folder... one moment.\n\nDone: nothing matched.' }
+        })
+        completePrompt(message.id, sessionId)
+        break
+      }
+      if (/answer without narration/i.test(text)) {
+        update(sessionId, {
+          sessionUpdate: 'agent_message_chunk',
+          content: { type: 'text', text: 'A tuple is an ordered, fixed-length sequence.' }
+        })
+        completePrompt(message.id, sessionId)
+        break
+      }
+      if (/generate an escaped image/i.test(text)) {
+        // A real image file that sits OUTSIDE the trusted generated-image
+        // root: the boundary must reject it even though the bytes exist.
+        const escapedPath = join(process.cwd(), 'qa-escaped.png')
+        writeFileSync(escapedPath, Buffer.from(QA_PNG_BASE64, 'base64'))
+        update(sessionId, {
+          sessionUpdate: 'tool_call',
+          toolCallId: 'qa-escaped-image-tool',
+          title: 'image_gen',
+          rawInput: { prompt: 'an out-of-root swatch', aspect_ratio: '1:1' }
+        })
+        update(sessionId, {
+          sessionUpdate: 'tool_call_update',
+          toolCallId: 'qa-escaped-image-tool',
+          status: 'completed',
+          rawOutput: {
+            type: 'ImageGen',
+            path: escapedPath,
+            filename: 'qa-escaped.png',
+            session_folder: 'images'
+          }
+        })
+        update(sessionId, {
+          sessionUpdate: 'agent_message_chunk',
+          content: { type: 'text', text: 'Reported an out-of-root image.' }
+        })
+        completePrompt(message.id, sessionId)
+        break
+      }
+      if (/generate an image/i.test(text)) {
+        const imageDirectory = join(process.cwd(), '.grok-generated')
+        mkdirSync(imageDirectory, { recursive: true })
+        const imagePath = join(imageDirectory, 'qa-generated.png')
+        writeFileSync(imagePath, Buffer.from(QA_PNG_BASE64, 'base64'))
+        update(sessionId, {
+          sessionUpdate: 'tool_call',
+          toolCallId: 'qa-image-tool',
+          title: 'image_gen',
+          rawInput: { prompt: 'a quality assurance swatch', aspect_ratio: '1:1' }
+        })
+        update(sessionId, {
+          sessionUpdate: 'tool_call_update',
+          toolCallId: 'qa-image-tool',
+          title: 'imagine: a quality assurance swatch',
+          status: 'completed',
+          rawOutput: {
+            type: 'ImageGen',
+            path: imagePath,
+            filename: 'qa-generated.png',
+            session_folder: 'images'
+          }
+        })
+        update(sessionId, {
+          sessionUpdate: 'agent_message_chunk',
+          content: { type: 'text', text: 'Generated one image.' }
         })
         completePrompt(message.id, sessionId)
         break

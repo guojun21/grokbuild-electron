@@ -8,7 +8,7 @@ Release ready: **no**
 
 verified: 3 · partial: 22 · missing: 1 · external-blocked: 0 · intentional-difference: 0
 
-Deterministic scenarios: 2 · NDJSON fixtures: 1 · Unit files: 90 · E2E files: 12 · Known differences: 11 (pending: 11, approved: 0)
+Deterministic scenarios: 2 · NDJSON fixtures: 1 · Unit files: 90 · E2E files: 13 · Known differences: 11 (pending: 11, approved: 0)
 
 ## Release blockers
 
