@@ -313,10 +313,14 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
 .attachment-chips { min-width: 0; display: flex; flex-wrap: wrap; gap: 5px; }
 .attachment-chip { min-width: 0; max-width: 190px; height: 24px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--text-secondary); font-size: 10px; }
 .attachment-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.attachment-thumb { display: inline-flex; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
-.attachment-thumb img { display: block; width: auto; height: 52px; max-width: 120px; object-fit: cover; }
+.attachment-thumb { display: inline-flex; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); cursor: zoom-in; transition: border-color .15s ease, transform .15s ease; }
+.attachment-thumb:hover { border-color: var(--line-strong); transform: scale(1.02); }
+.attachment-thumb img { display: block; width: 76px; height: 76px; object-fit: cover; }
 .message-attachment-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
-.message-attachment-tags .attachment-thumb img { height: 88px; max-width: 220px; }
+.lightbox-backdrop { position: fixed; z-index: 90; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, #0b0d12 62%, transparent); backdrop-filter: blur(3px); opacity: 1; cursor: zoom-out; transition: opacity .26s ease; animation: lightbox-shade-in .26s ease; }
+@keyframes lightbox-shade-in { from { opacity: 0; } }
+.lightbox-image { max-width: min(86vw, 1100px); max-height: 82vh; border-radius: 11px; box-shadow: 0 24px 70px rgba(6, 9, 16, .5); transition: transform .28s cubic-bezier(.22, .9, .26, 1), opacity .28s ease; will-change: transform; }
+.lightbox-caption { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 99px; background: color-mix(in srgb, #0b0d12 70%, transparent); color: #e8ebf2; font-size: 11px; }
 .message-attachment-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--muted); font-size: 10.5px; }
 .attachment-strip > button { flex: 0 0 auto; height: 24px; display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 10px; }
 .attachment-strip > button:hover { background: var(--line); color: var(--text); }

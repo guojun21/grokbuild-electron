@@ -803,8 +803,11 @@ export function registerIpc(
   }
 }
 
-const PREVIEW_HEIGHT = 96
-const MAX_PREVIEW_CHARS = 200_000
+// Tall enough that the lightbox stays sharp, small enough to keep persisted
+// sessions reasonable. JPEG re-encode; transparency flattens, which is fine
+// for the screenshot-style images this feature serves.
+const PREVIEW_HEIGHT = 512
+const MAX_PREVIEW_CHARS = 400_000
 
 /**
  * Bounded display thumbnails for staged images, generated in main from the
@@ -828,13 +831,9 @@ function withImagePreviews(
         const image = nativeImage.createFromPath(path!)
         if (image.isEmpty()) return attachment
         const size = image.getSize()
-        const preview = (size.height > PREVIEW_HEIGHT
-          ? image.resize({ height: PREVIEW_HEIGHT })
-          : image
-        ).toDataURL()
-        if (preview.length > MAX_PREVIEW_CHARS || !preview.startsWith('data:image/')) {
-          return attachment
-        }
+        const scaled = size.height > PREVIEW_HEIGHT ? image.resize({ height: PREVIEW_HEIGHT }) : image
+        const preview = `data:image/jpeg;base64,${scaled.toJPEG(82).toString('base64')}`
+        if (preview.length > MAX_PREVIEW_CHARS) return attachment
         return { ...attachment, preview }
       } catch {
         return attachment

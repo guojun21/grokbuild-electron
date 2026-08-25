@@ -20,6 +20,7 @@ interface ComposerProps {
   onSend: (text: string, attachmentToken?: string) => Promise<boolean>
   onChooseAttachments: () => Promise<AttachmentSelectionSummary | null>
   onCaptureClipboardImage: () => Promise<AttachmentSelectionSummary | null>
+  onPreviewImage: (request: { src: string; name: string; origin: { x: number; y: number; width: number; height: number } }) => void
   onCancelAttachments: (token: string) => Promise<void>
   onCancel: () => void
   onBindSavedAgent: (agentId: string | null, expectedRevision: number) => Promise<boolean>
@@ -34,6 +35,7 @@ export function Composer({
   onSend,
   onChooseAttachments,
   onCaptureClipboardImage,
+  onPreviewImage,
   onCancelAttachments,
   onCancel,
   onBindSavedAgent,
@@ -205,13 +207,20 @@ export function Composer({
             <div className="attachment-chips">
               {selection.attachments.map((attachment, index) => (
                 attachment.kind === 'image' && attachment.preview && !privacy.enabled ? (
-                  <span
+                  <button
+                    type="button"
                     className="attachment-thumb"
                     key={`${attachment.kind}-${attachment.displayName}-${index}`}
                     title={attachment.displayName}
+                    aria-label={`View ${attachment.displayName}`}
+                    onClick={(event) => onPreviewImage({
+                      src: attachment.preview!,
+                      name: attachment.displayName,
+                      origin: event.currentTarget.getBoundingClientRect()
+                    })}
                   >
                     <img src={attachment.preview} alt={attachment.displayName} draggable={false} />
-                  </span>
+                  </button>
                 ) : (
                   <span
                     className="attachment-chip"

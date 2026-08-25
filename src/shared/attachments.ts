@@ -47,7 +47,7 @@ export const attachmentItemSummarySchema = z.object({
   kind: z.enum(['file', 'image']),
   displayName: z.string().min(1).max(1_024).regex(/^[^\u0000-\u001f\u007f]+$/),
   preview: z.string()
-    .max(200_000)
+    .max(400_000)
     .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/]+={0,2}$/)
     .optional()
 }).strict()

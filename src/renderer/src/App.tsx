@@ -20,6 +20,7 @@ import type { WorkspaceHealthState } from '../../shared/workspaceHealth'
 import type { ProjectOpenTargetStatus } from '../../shared/ipc'
 import { createPrivacyDisplayResolver } from '../../shared/privacy'
 import { Composer } from './components/Composer'
+import { ImageLightbox, type LightboxRequest } from './components/ImageLightbox'
 import { SessionDashboardPanel } from './components/SessionDashboardPanel'
 import { SessionHistoryPanel } from './components/SessionHistoryPanel'
 import { SessionActivityPanel } from './components/SessionActivityPanel'
@@ -80,6 +81,7 @@ function SidebarResizer({
 
 export function App(): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<AppSnapshot>()
+  const [lightbox, setLightbox] = useState<LightboxRequest>()
   const [sidebarWidth, setSidebarWidthState] = useState(() =>
     clampSidebarWidth(Number(window.localStorage.getItem(SIDEBAR_WIDTH_KEY) ?? SIDEBAR_WIDTH_DEFAULT))
   )
@@ -421,6 +423,7 @@ export function App(): React.JSX.Element {
       style={{ ['--sidebar-width' as string]: `${sidebarWidth}px` }}
     >
       <SidebarResizer width={sidebarWidth} onResize={setSidebarWidth} />
+      {lightbox ? <ImageLightbox request={lightbox} onClose={() => setLightbox(undefined)} /> : null}
       <Sidebar
         snapshot={snapshot}
         privacy={privacy}
@@ -621,6 +624,7 @@ export function App(): React.JSX.Element {
               <Transcript
                 session={selectedSession}
                 privacyEnabled={privacy.enabled}
+                onPreviewImage={setLightbox}
                 onAnswerPermission={(requestId, optionId) => runAction(() => window.grokbuild.answerPermission({ sessionId: selectedSession.id, requestId, optionId }))}
                 onAnswerInteraction={(interactionId, answer) => runAction(() => window.grokbuild.answerInteraction({ sessionId: selectedSession.id, interactionId, answer }))}
               />
@@ -632,6 +636,7 @@ export function App(): React.JSX.Element {
                 onSend={(text, attachmentToken) => sendComposerPrompt(selectedSession.id, text, attachmentToken)}
                 onChooseAttachments={() => chooseAttachments(selectedSession.id)}
                 onCaptureClipboardImage={() => captureClipboardImage(selectedSession.id)}
+                onPreviewImage={setLightbox}
                 onCancelAttachments={(token) => window.grokbuild.cancelAttachments({
                   sessionId: selectedSession.id,
                   token

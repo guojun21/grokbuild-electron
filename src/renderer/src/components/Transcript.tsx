@@ -11,11 +11,12 @@ import { SafeMarkdown } from './SafeMarkdown'
 interface TranscriptProps {
   session: PublicSessionSnapshot
   privacyEnabled: boolean
+  onPreviewImage: (request: { src: string; name: string; origin: { x: number; y: number; width: number; height: number } }) => void
   onAnswerPermission: (requestId: string, optionId: string) => void
   onAnswerInteraction: (interactionId: string, answer: InteractionAnswer) => void
 }
 
-export function Transcript({ session, privacyEnabled, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
+export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
   if (session.transcript.length === 0 && !session.pendingPermission && !session.pendingInteraction) {
     return (
       <div className="empty-transcript" data-testid="empty-transcript">
@@ -33,7 +34,7 @@ export function Transcript({ session, privacyEnabled, onAnswerPermission, onAnsw
 
   return (
     <div className="transcript" data-testid="transcript" aria-live="polite">
-      {session.transcript.map((item) => <TranscriptRow key={item.id} item={item} privacyEnabled={privacyEnabled} />)}
+      {session.transcript.map((item) => <TranscriptRow key={item.id} item={item} privacyEnabled={privacyEnabled} onPreviewImage={onPreviewImage} />)}
       {session.pendingPermission ? (
         <section className="permission-card" data-testid="permission-card">
           <div className="permission-icon"><CircleAlert size={17} /></div>
@@ -67,6 +68,8 @@ export function Transcript({ session, privacyEnabled, onAnswerPermission, onAnsw
   )
 }
 
+type PreviewImageHandler = (request: { src: string; name: string; origin: { x: number; y: number; width: number; height: number } }) => void
+
 const ATTACHMENT_NOTE = /^Attached (?:image|images|file|files): (.+)$/
 
 /**
@@ -79,11 +82,13 @@ const ATTACHMENT_NOTE = /^Attached (?:image|images|file|files): (.+)$/
 function UserMessageText({
   text,
   attachments,
-  privacyEnabled
+  privacyEnabled,
+  onPreviewImage
 }: {
   text: string
   attachments?: readonly { kind: 'file' | 'image'; displayName: string; preview?: string | undefined }[] | undefined
   privacyEnabled: boolean
+  onPreviewImage: PreviewImageHandler
 }): React.JSX.Element {
   const lines = text.split('\n')
   const hasNotes = lines.some((line) => ATTACHMENT_NOTE.test(line))
@@ -98,9 +103,20 @@ function UserMessageText({
         <div className="message-attachment-tags">
           {attachments.map((attachment, index) =>
             attachment.kind === 'image' && attachment.preview && !privacyEnabled ? (
-              <span className="attachment-thumb" key={index} title={attachment.displayName}>
+              <button
+                type="button"
+                className="attachment-thumb"
+                key={index}
+                title={attachment.displayName}
+                aria-label={`View ${attachment.displayName}`}
+                onClick={(event) => onPreviewImage({
+                  src: attachment.preview!,
+                  name: attachment.displayName,
+                  origin: event.currentTarget.getBoundingClientRect()
+                })}
+              >
                 <img src={attachment.preview} alt={attachment.displayName} draggable={false} />
-              </span>
+              </button>
             ) : (
               <span className="message-attachment-tag" key={index}>
                 {attachment.kind === 'image' ? <Image size={11} /> : <FileText size={11} />}
@@ -333,7 +349,7 @@ function QuestionInteractionCard({
   )
 }
 
-function TranscriptRow({ item, privacyEnabled }: { item: TranscriptItem; privacyEnabled: boolean }): React.JSX.Element {
+function TranscriptRow({ item, privacyEnabled, onPreviewImage }: { item: TranscriptItem; privacyEnabled: boolean; onPreviewImage: PreviewImageHandler }): React.JSX.Element {
   if (item.kind === 'message') {
     return (
       <article className={`message-row role-${item.role}`} data-kind={item.kind}>
@@ -341,7 +357,7 @@ function TranscriptRow({ item, privacyEnabled }: { item: TranscriptItem; privacy
           <div className="message-label">{item.role === 'user' ? 'You' : 'Grok'}</div>
           {item.role === 'assistant'
             ? <SafeMarkdown source={item.text} />
-            : <UserMessageText text={item.text} attachments={item.attachments} privacyEnabled={privacyEnabled} />}
+            : <UserMessageText text={item.text} attachments={item.attachments} privacyEnabled={privacyEnabled} onPreviewImage={onPreviewImage} />}
         </div>
       </article>
     )
