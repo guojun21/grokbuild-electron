@@ -114,7 +114,14 @@ export interface AcpClientEvents {
 }
 
 export class AcpClient extends EventEmitter<AcpClientEvents> {
-  private static readonly maxStdoutBufferBytes = 4 * 1024 * 1024
+  /**
+   * Cap on buffered CLI stdout awaiting a newline. Must comfortably exceed
+   * the largest single ACP frame the CLI can emit: it echoes image prompt
+   * blocks back as one JSON line, so a 30MB attachment returns as ~40MB of
+   * base64. The old 4MB cap made every pasted-image turn kill the CLI
+   * mid-prompt (SIGTERM, exit 143) the moment the echo arrived.
+   */
+  private static readonly maxStdoutBufferBytes = 64 * 1024 * 1024
   private process: ChildProcessWithoutNullStreams | undefined
   private stdoutBuffer = ''
   private stdoutDecoder = new TextDecoder()
@@ -488,7 +495,9 @@ export class AcpClient extends EventEmitter<AcpClientEvents> {
 
   private handleStdoutChunk(chunk: Buffer, child: ChildProcessWithoutNullStreams): void {
     this.stdoutBuffer += this.stdoutDecoder.decode(chunk, { stream: true })
-    if (Buffer.byteLength(this.stdoutBuffer, 'utf8') > AcpClient.maxStdoutBufferBytes) {
+    const bufferedBytes = Buffer.byteLength(this.stdoutBuffer, 'utf8')
+    if (bufferedBytes > AcpClient.maxStdoutBufferBytes) {
+      this.emit('stderr', `ACP stdout buffer overflow: ${bufferedBytes} bytes without a newline; terminating the CLI.`)
       const error = new PublicAcpError('generic')
       this.emit('stderr', error.message)
       this.rejectAll(error)
