@@ -46,16 +46,18 @@ export function Composer({
   const selectionRef = useRef<AttachmentSelectionSummary | undefined>(undefined)
   const sessionIdRef = useRef(session.id)
   sessionIdRef.current = session.id
-  const modelCapabilitiesReady = Boolean(
-    session.availableModels?.length &&
-    session.availableModels.some((model) => model.id === session.model)
-  )
+  // Ready means the connected session reported a catalog. The current model may
+  // legitimately be missing from it (the CLI retired it between sessions); the
+  // picker must still offer the catalog so the user can switch away.
+  const modelCapabilitiesReady = Boolean(session.availableModels?.length)
   const modeCapabilitiesReady = Boolean(
     session.availableModes?.length &&
     session.availableModes.some((mode) => mode.id === session.mode)
   )
   const models = modelCapabilitiesReady
-    ? session.availableModels!
+    ? session.availableModels!.some((model) => model.id === session.model)
+      ? session.availableModels!
+      : [{ id: session.model, name: session.model }, ...session.availableModels!]
     : [{ id: session.model, name: session.model }]
   const modes = modeCapabilitiesReady
     ? session.availableModes!
