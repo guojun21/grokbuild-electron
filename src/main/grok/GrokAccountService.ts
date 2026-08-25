@@ -87,7 +87,11 @@ export class GrokAccountService {
 
   private async fetchUsage(credential: string): Promise<ReturnType<typeof parseUsage>> {
     try {
-      const payload = await this.request(credential, '/billing')
+      // format=credits returns the newer credits config: rolling weekly or
+      // monthly period plus percent-of-allowance, per the upstream source
+      // (xai-grok-shell extensions/billing.rs). Legacy fields still arrive
+      // alongside, so older backends keep working through the same parser.
+      const payload = await this.request(credential, '/billing?format=credits')
       if (payload === 'unauthorized') return null
       return parseUsage(payload)
     } catch {
@@ -115,10 +119,16 @@ function parseUsage(payload: unknown): {
   periodStart: string
   periodEnd: string
   history: AccountUsageCycle[]
+  periodType?: 'weekly' | 'monthly' | 'other'
+  creditUsagePercent?: number
+  prepaidBalance?: number
+  onDemandUsed?: number
+  productUsage?: Array<{ product: string; usagePercent: number }>
 } | null {
   const config = asRecord(asRecord(payload).config)
-  const periodStart = isoDate(config.billingPeriodStart)
-  const periodEnd = isoDate(config.billingPeriodEnd)
+  const currentPeriod = asRecord(config.currentPeriod)
+  const periodStart = isoDate(currentPeriod.start) ?? isoDate(config.billingPeriodStart)
+  const periodEnd = isoDate(currentPeriod.end) ?? isoDate(config.billingPeriodEnd)
   if (!periodStart || !periodEnd) return null
   const history: AccountUsageCycle[] = []
   for (const entry of Array.isArray(config.history) ? config.history.slice(0, HISTORY_LIMIT) : []) {
@@ -135,14 +145,41 @@ function parseUsage(payload: unknown): {
       totalUsed: metric(record.totalUsed)
     })
   }
+  const periodType = usagePeriodType(currentPeriod.type)
+  const creditUsagePercent = percentValue(config.creditUsagePercent)
+  const productUsage: Array<{ product: string; usagePercent: number }> = []
+  for (const entry of Array.isArray(config.productUsage) ? config.productUsage.slice(0, 16) : []) {
+    const record = asRecord(entry)
+    const product = label(record.product, 128)
+    const usagePercent = percentValue(record.usagePercent)
+    if (product && usagePercent !== undefined) productUsage.push({ product, usagePercent })
+  }
   return {
     used: metric(config.used),
     monthlyLimit: metric(config.monthlyLimit),
     onDemandCap: metric(config.onDemandCap),
     periodStart,
     periodEnd,
-    history
+    history,
+    ...(periodType ? { periodType } : {}),
+    ...(creditUsagePercent !== undefined ? { creditUsagePercent } : {}),
+    ...(asRecord(config.prepaidBalance).val !== undefined ? { prepaidBalance: metric(config.prepaidBalance) } : {}),
+    ...(asRecord(config.onDemandUsed).val !== undefined ? { onDemandUsed: metric(config.onDemandUsed) } : {}),
+    ...(productUsage.length > 0 ? { productUsage } : {})
   }
+}
+
+function usagePeriodType(value: unknown): 'weekly' | 'monthly' | 'other' | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined
+  if (value === 'USAGE_PERIOD_TYPE_WEEKLY') return 'weekly'
+  if (value === 'USAGE_PERIOD_TYPE_MONTHLY') return 'monthly'
+  return 'other'
+}
+
+function percentValue(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? Math.min(value, 1_000)
+    : undefined
 }
 
 async function readBearerCredential(path: string): Promise<string | null> {

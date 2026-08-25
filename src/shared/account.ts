@@ -16,7 +16,17 @@ const accountUsageSchema = z.object({
   onDemandCap: z.number().finite().min(0),
   periodStart: z.string().datetime({ offset: true }),
   periodEnd: z.string().datetime({ offset: true }),
-  history: z.array(accountUsageCycleSchema).max(24)
+  history: z.array(accountUsageCycleSchema).max(24),
+  /** Rolling window kind from the credits config (USAGE_PERIOD_TYPE_*). */
+  periodType: z.enum(['weekly', 'monthly', 'other']).optional(),
+  /** Included-allowance usage for the current period, 0–100 (may exceed on overage). */
+  creditUsagePercent: z.number().finite().min(0).max(1_000).optional(),
+  prepaidBalance: z.number().finite().min(0).optional(),
+  onDemandUsed: z.number().finite().min(0).optional(),
+  productUsage: z.array(z.object({
+    product: z.string().min(1).max(128),
+    usagePercent: z.number().finite().min(0).max(1_000)
+  }).strict()).max(16).optional()
 }).strict()
 
 /**

@@ -117,11 +117,70 @@ function AccountReportBody({
   )
 }
 
-function AccountUsageBody({
-  usage
-}: {
-  usage: NonNullable<Extract<GrokAccountReport, { state: 'ok' }>['usage']>
-}): React.JSX.Element {
+type AccountUsage = NonNullable<Extract<GrokAccountReport, { state: 'ok' }>['usage']>
+
+function AccountUsageBody({ usage }: { usage: AccountUsage }): React.JSX.Element {
+  if (usage.creditUsagePercent !== undefined) return <CreditsUsageBody usage={usage} />
+  return <LegacyUsageBody usage={usage} />
+}
+
+/**
+ * Newer credits config: a rolling weekly/monthly allowance expressed as a
+ * percentage — the codex-style "1 week · N% · resets <date>" readout.
+ */
+function CreditsUsageBody({ usage }: { usage: AccountUsage }): React.JSX.Element {
+  const percent = usage.creditUsagePercent ?? 0
+  const windowLabel = usage.periodType === 'weekly'
+    ? '1-week window'
+    : usage.periodType === 'monthly'
+      ? '1-month window'
+      : 'current period'
+  const products = usage.productUsage ?? []
+  return (
+    <div className="account-usage" data-testid="account-usage">
+      <div className="account-usage-row">
+        <span>
+          <strong>{formatPercent(percent)} used</strong>
+          <small>{windowLabel} · resets {shortDate(usage.periodEnd)}</small>
+        </span>
+        {usage.prepaidBalance !== undefined && usage.prepaidBalance > 0 ? (
+          <span>
+            <strong>{formatUsd(usage.prepaidBalance)}</strong>
+            <small>prepaid balance</small>
+          </span>
+        ) : null}
+        {usage.onDemandCap > 0 ? (
+          <span>
+            <strong>{formatUsd(usage.onDemandCap)}</strong>
+            <small>on-demand cap</small>
+          </span>
+        ) : null}
+      </div>
+      <div
+        className="account-meter"
+        role="meter"
+        aria-label="Allowance used this period"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.min(100, percent)}
+      >
+        <div className="account-meter-fill" style={{ width: `${Math.min(100, Math.round(percent))}%` }} />
+      </div>
+      {products.length > 0 ? (
+        <div className="account-history">
+          {products.map((entry) => (
+            <span key={entry.product}>
+              <small>{entry.product}</small>
+              <strong>{formatPercent(entry.usagePercent)}</strong>
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function LegacyUsageBody({ usage }: { usage: AccountUsage }): React.JSX.Element {
   const allowance = usage.monthlyLimit > 0
   const ratio = allowance ? Math.min(1, usage.used / usage.monthlyLimit) : 0
   const cycles = usage.history.filter((cycle) => cycle.totalUsed > 0).slice(0, 3)
@@ -170,6 +229,20 @@ function AccountUsageBody({
 
 function formatAmount(value: number): string {
   return Number.isInteger(value) ? value.toLocaleString('en-US') : value.toFixed(2)
+}
+
+function formatPercent(value: number): string {
+  return `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)}%`
+}
+
+/** Billing metrics arrive as USD cents. */
+function formatUsd(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`
+}
+
+function shortDate(iso: string): string {
+  const date = new Date(iso)
+  return `${MONTH_LABELS[date.getUTCMonth()]} ${date.getUTCDate()}`
 }
 
 function formatPeriod(startIso: string, endIso: string): string {
