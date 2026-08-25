@@ -108,6 +108,7 @@ app.on('window-all-closed', () => {
 })
 
 if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
+  if (process.env.GROKBUILD_E2E_HIDDEN === '1') app.dock?.hide()
   const cliPath = await locateGrokCli()
   controller = new AppController({
     appVersion: app.getVersion(),
@@ -447,7 +448,12 @@ function createWindow(): BrowserWindow {
   window.on('closed', () => {
     if (mainWindow === window) mainWindow = undefined
   })
-  window.once('ready-to-show', () => window.show())
+  // Automated runs that only drive the DOM keep the window off screen so a test
+  // sweep never steals focus. Screenshot suites leave the flag unset.
+  window.once('ready-to-show', () => {
+    if (process.env.GROKBUILD_E2E_HIDDEN === '1') return
+    window.show()
+  })
   return window
 }
 

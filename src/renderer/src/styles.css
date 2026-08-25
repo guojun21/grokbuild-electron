@@ -297,6 +297,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .primary-small { border: 0; background: var(--accent); color: white; }
 .secondary-small { border: 1px solid var(--line); background: var(--surface); }
 .working-line { display: flex; align-items: center; gap: 6px; margin-left: 38px; color: var(--muted); font-size: 11px; }
+.working-elapsed { color: var(--faint); font-variant-numeric: tabular-nums; }
 .working-line svg, .tool-running .tool-status svg { animation: spin 1.3s linear infinite; }
 .error-row { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 18px 38px; padding: 9px 11px; border-left: 2px solid var(--danger); background: var(--danger-soft); color: var(--danger); font-size: 12px; line-height: 1.45; }
 .notice-row { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 18px 38px; padding: 9px 11px; border-left: 2px solid var(--accent); background: var(--accent-soft); color: var(--text-secondary); font-size: 12px; line-height: 1.45; }

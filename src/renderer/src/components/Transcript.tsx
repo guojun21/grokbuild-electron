@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Bot, Check, ChevronRight, CircleAlert, CircleDashed, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
 import type { PublicSessionSnapshot, TranscriptItem } from '../../../shared/models'
 import type {
@@ -61,9 +61,29 @@ export function Transcript({ session, onAnswerPermission, onAnswerInteraction }:
           onAnswer={onAnswerInteraction}
         />
       ) : null}
-      {session.status === 'running' ? (
-        <div className="working-line"><CircleDashed size={14} /> Grok is working</div>
-      ) : null}
+      {session.status === 'running' ? <WorkingLine /> : null}
+    </div>
+  )
+}
+
+/**
+ * Grok streams the answer only after the model finishes reasoning, and it sends
+ * no reasoning text over ACP, so a turn can sit silent for tens of seconds.
+ * Counting that wait keeps it readable as work rather than a hang.
+ */
+function WorkingLine(): React.JSX.Element {
+  const [seconds, setSeconds] = useState(0)
+  useEffect(() => {
+    const startedAt = Date.now()
+    const timer = setInterval(() => {
+      setSeconds(Math.floor((Date.now() - startedAt) / 1000))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+  return (
+    <div className="working-line" data-testid="working-line">
+      <CircleDashed size={14} /> Grok is working
+      {seconds >= 3 ? <span className="working-elapsed">· {seconds}s</span> : null}
     </div>
   )
 }

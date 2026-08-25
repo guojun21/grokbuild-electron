@@ -19,7 +19,7 @@
     "test": "vitest run",
     "lint": "npm run qa:security && npm run typecheck",
     "test:watch": "vitest",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && GROKBUILD_E2E_HIDDEN=1 playwright test",
     "test:visual": "npm run build && GROKBUILD_VISUAL=1 playwright test tests/e2e/visual.spec.ts",
     "qa:contracts": "node scripts/qa/verify-contracts.mjs",
     "qa:swift-reference": "swift test --package-path .reference/grok-build-desktop",
@@ -36,7 +36,8 @@
     "verify:package": "node scripts/qa/verify-macos-package.mjs",
     "smoke:package": "node scripts/qa/smoke-packaged.mjs",
     "smoke:real-cli": "node scripts/qa/smoke-real-cli.mjs",
-    "dist:mac": "npm run qa && npm run package:mac && npm run verify:package"
+    "dist:mac": "npm run qa && npm run package:mac && npm run verify:package",
+    "test:e2e:visible": "npm run build && playwright test"
   },
   "dependencies": {
     "smol-toml": "1.8.0",
