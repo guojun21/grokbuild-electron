@@ -1,26 +1,36 @@
 import { _electron as electron, expect, test } from '@playwright/test'
-import type { Page } from '@playwright/test'
 import { chmod, mkdtemp, mkdir, rm, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-// The canonical baselines are honest only at their recorded viewport. A display that
-// cannot host that viewport (for example GitHub-hosted macOS runners clamp windows to
-// the runner's small work area) must report blocked, never a false red or green.
-async function skipUnlessViewport(page: Page, width: number, height: number): Promise<void> {
-  const matched = await page
-    .waitForFunction(
-      (size) => window.innerWidth === size.width && window.innerHeight === size.height,
-      { width, height },
-      { timeout: 5000 }
-    )
-    .then(() => true)
-    .catch(() => false)
-  if (matched) return
-  const size = await page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }))
+type ElectronApp = Awaited<ReturnType<typeof electron.launch>>
+
+// The canonical baselines are honest only at their recorded window size. On small
+// displays — for example GitHub-hosted macOS runners — macOS clamps the window toward
+// the work area (never below the app's 1100x720 minimum), and the clamp can land after
+// a first lucky size reading. Request the canonical size, wait for the viewport to hold
+// steady, and if the settled size is not the requested one report blocked, never a
+// false red or green.
+async function resizeOrSkip(app: ElectronApp, width: number, height: number): Promise<void> {
+  const page = await app.firstWindow()
+  await app.evaluate(({ BrowserWindow }, size) => {
+    BrowserWindow.getAllWindows()[0]?.setSize(size.width, size.height)
+  }, { width, height })
+  const readViewport = () =>
+    page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }))
+  let settled = await readViewport()
+  for (let stable = 0, samples = 0; stable < 4 && samples < 40; samples += 1) {
+    await page.waitForTimeout(250)
+    const next = await readViewport()
+    if (next.width === settled.width && next.height === settled.height) stable += 1
+    else {
+      settled = next
+      stable = 0
+    }
+  }
   test.skip(
-    true,
-    `Viewport is ${size.width}x${size.height}, not the canonical ${width}x${height}; run on the pinned macOS visual runner`
+    settled.width !== width || settled.height !== height,
+    `Viewport settled at ${settled.width}x${settled.height}, not the canonical ${width}x${height}; run on the pinned macOS visual runner`
   )
 }
 
@@ -44,7 +54,7 @@ test('matches the canonical 1200x800 conversation surface', async () => {
   })
   try {
     const page = await app.firstWindow()
-    await skipUnlessViewport(page, 1200, 800)
+    await resizeOrSkip(app, 1200, 800)
     await page.getByRole('button', { name: 'New chat' }).last().click()
     await page.getByTestId('prompt-input').fill('Run the QA contract')
     await page.getByTestId('send-prompt').click()
@@ -116,7 +126,7 @@ test('matches the canonical 1200x800 Saved Agents settings surface', async () =>
   })
   try {
     const page = await app.firstWindow()
-    await skipUnlessViewport(page, 1200, 800)
+    await resizeOrSkip(app, 1200, 800)
     await page.getByRole('button', { name: 'Settings' }).click()
     await page.getByRole('button', { name: 'Agents', exact: true }).click()
     const settings = page.getByRole('dialog', { name: 'Settings' })
@@ -154,10 +164,7 @@ test('matches the private reduced-motion core at 1100x720 in light and dark', as
   })
   try {
     const page = await app.firstWindow()
-    await app.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0]?.setSize(1100, 720)
-    })
-    await skipUnlessViewport(page, 1100, 720)
+    await resizeOrSkip(app, 1100, 720)
     await page.getByRole('button', { name: 'New chat' }).last().click()
     await page.evaluate(() => (
       globalThis as unknown as {
@@ -272,10 +279,7 @@ test('matches the canonical 1200x800 Memory settings surfaces', async () => {
   })
   try {
     const page = await app.firstWindow()
-    await app.evaluate(({ BrowserWindow }) => {
-      BrowserWindow.getAllWindows()[0]?.setSize(1200, 800)
-    })
-    await skipUnlessViewport(page, 1200, 800)
+    await resizeOrSkip(app, 1200, 800)
     await page.getByRole('button', { name: 'Settings' }).click()
     const settings = page.getByRole('dialog', { name: 'Settings' })
     await settings.getByRole('button', { name: 'Memory', exact: true }).click()
