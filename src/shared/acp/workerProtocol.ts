@@ -106,9 +106,9 @@ export const workerCapabilitiesEventSchema = z.object({
     name: z.string().min(1).max(256),
     contextLimit: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional()
   }).strict()).max(64),
-  currentModeId: z.enum(['default', 'plan', 'ask']).optional(),
+  currentModeId: z.enum(['default', 'plan', 'ask', 'yolo']).optional(),
   availableModes: z.array(z.object({
-    id: z.enum(['default', 'plan', 'ask']),
+    id: z.enum(['default', 'plan', 'ask', 'yolo']),
     name: z.string().min(1).max(128)
   }).strict()).max(8)
 }).strict()

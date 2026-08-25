@@ -32,7 +32,7 @@ export const acpContextUsageEventSchema = z.object({
 
 export const acpModeChangedEventSchema = z.object({
   type: z.literal('mode_changed'),
-  mode: z.enum(['default', 'plan', 'ask']),
+  mode: z.enum(['default', 'plan', 'ask', 'yolo']),
   permissionMode: z.enum(['auto']).optional()
 }).strict()
 

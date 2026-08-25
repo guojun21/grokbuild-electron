@@ -137,7 +137,7 @@ export const sessionSnapshotSchema = z.object({
   title: z.string().min(1).max(2_000),
   status: z.enum(['idle', 'starting', 'running', 'waiting', 'failed']),
   model: z.string().min(1).max(128),
-  mode: z.enum(['default', 'plan', 'ask']),
+  mode: z.enum(['default', 'plan', 'ask', 'yolo']),
   reasoningEffort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']),
   permissionMode: z.enum(['ask', 'auto']).default('ask'),
   availableModels: z.array(z.object({
@@ -146,7 +146,7 @@ export const sessionSnapshotSchema = z.object({
     contextLimit: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional()
   }).strict()).max(64).optional(),
   availableModes: z.array(z.object({
-    id: z.enum(['default', 'plan', 'ask']),
+    id: z.enum(['default', 'plan', 'ask', 'yolo']),
     name: z.string().min(1).max(128)
   }).strict()).max(8).optional(),
   contextUsed: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),

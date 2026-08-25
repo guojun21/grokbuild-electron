@@ -17,6 +17,7 @@ import type { PrivacyDisplayResolver } from '../../../shared/privacy'
 import {
   DASHBOARD_SECTION_ORDER,
   dashboardTitle,
+  modeLabel,
   resolveDashboardGroup,
   type DashboardGroup
 } from '../../../shared/sessionPresentation'
@@ -149,7 +150,7 @@ export function SessionDashboardPanel({
                         >
                           <div className="dashboard-session-copy">
                             <strong>{title}</strong>
-                            <span>{session.model} · {session.mode === 'default' ? 'Agent' : session.mode}</span>
+                            <span>{session.model} · {modeLabel(session.mode)}</span>
                           </div>
                           <div className="dashboard-session-meta">
                             {session.pendingUserCount > 0 ? <span className="attention">{session.pendingUserCount} pending</span> : null}

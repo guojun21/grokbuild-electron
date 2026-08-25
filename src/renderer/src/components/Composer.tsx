@@ -253,19 +253,6 @@ export function Composer({
               </span>
             ) : null}
             <select
-              value={session.mode}
-              onChange={(event) => onUpdate({ mode: event.target.value as PublicSessionSnapshot['mode'] })}
-              aria-label="Agent mode"
-              title={workspaceBlocked
-                ? 'Restore the workspace before changing session settings.'
-                : modeCapabilitiesReady
-                ? 'Modes reported by the connected Grok session.'
-                : 'Mode options become available after Grok connects.'}
-              disabled={workspaceBlocked || !modeCapabilitiesReady}
-            >
-              {modes.map((mode) => <option key={mode.id} value={mode.id}>{mode.name}</option>)}
-            </select>
-            <select
               value={session.model}
               onChange={(event) => onUpdate({ model: event.target.value })}
               aria-label="Model"

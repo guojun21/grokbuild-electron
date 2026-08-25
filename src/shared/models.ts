@@ -109,11 +109,11 @@ export interface SessionSnapshot {
   title: string
   status: SessionStatus
   model: string
-  mode: 'default' | 'plan' | 'ask'
+  mode: 'default' | 'plan' | 'ask' | 'yolo'
   reasoningEffort: 'low' | 'medium' | 'high' | 'xhigh' | 'max'
   permissionMode: 'ask' | 'auto'
   availableModels?: Array<{ id: string; name: string; contextLimit?: number | undefined }>
-  availableModes?: Array<{ id: 'default' | 'plan' | 'ask'; name: string }>
+  availableModes?: Array<{ id: 'default' | 'plan' | 'ask' | 'yolo'; name: string }>
   contextUsed: number
   contextLimit: number
   lastTurnUsage?: TurnTokenUsage

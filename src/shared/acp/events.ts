@@ -16,7 +16,7 @@ export type NormalizedAcpEvent =
   | { type: 'plan'; entries: Array<{ text: string; status: 'pending' | 'in_progress' | 'completed' }> }
   | { type: 'context_usage'; used: number; limit?: number | undefined }
   | { type: 'turn_usage'; usage: TurnTokenUsage }
-  | { type: 'mode_changed'; mode: 'default' | 'plan' | 'ask'; permissionMode?: 'ask' | 'auto' | undefined }
+  | { type: 'mode_changed'; mode: 'default' | 'plan' | 'ask' | 'yolo'; permissionMode?: 'ask' | 'auto' | undefined }
   | HookExecutionEvent
   | { type: 'turn_complete' }
   | { type: 'unknown'; name: string; payload: unknown }
@@ -228,7 +228,7 @@ export function normalizeSessionUpdate(params: unknown): NormalizedAcpEvent {
     case 'current_mode_update': {
       const rawMode = firstString(update.currentModeId, update.modeId, update.mode)
       if (rawMode === 'yolo' || rawMode === 'auto') {
-        return { type: 'mode_changed', mode: 'default', permissionMode: 'auto' }
+        return { type: 'mode_changed', mode: 'yolo', permissionMode: 'auto' }
       }
       const mode = rawMode === 'agent' ? 'default' : rawMode
       return mode === 'default' || mode === 'plan' || mode === 'ask'

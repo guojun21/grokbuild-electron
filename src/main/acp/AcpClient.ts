@@ -66,8 +66,8 @@ export interface AcpPermissionRequest {
 export interface AcpCapabilities {
   currentModelId?: string | undefined
   availableModels: Array<{ id: string; name: string; contextLimit?: number | undefined }>
-  currentModeId?: 'default' | 'plan' | 'ask' | undefined
-  availableModes: Array<{ id: 'default' | 'plan' | 'ask'; name: string }>
+  currentModeId?: 'default' | 'plan' | 'ask' | 'yolo' | undefined
+  availableModes: Array<{ id: 'default' | 'plan' | 'ask' | 'yolo'; name: string }>
 }
 
 export interface AcpStartResult {
@@ -321,7 +321,16 @@ export class AcpClient extends EventEmitter<AcpClientEvents> {
         allowedRoots: [this.options.cwd],
         ...(planPath ? { allowedFiles: [planPath] } : {})
       })
-      this.emit('capabilities', parseCapabilities(initialization, session))
+      // GrokBuild runs one mode by owner decision: the CLI's `yolo`, which
+      // auto-approves tool calls. Grok acknowledges the request but sends no
+      // current_mode_update for it (unlike `plan`), so the accepted value is
+      // carried into the capabilities snapshot rather than awaited as an echo.
+      // A rejected request leaves the session reporting Grok's own mode, and
+      // an agent-driven switch to `plan` is still tracked as usual.
+      const appliedMode = await this.request('session/set_mode', { sessionId, modeId: 'yolo' }, 20_000)
+        .then(() => 'yolo' as const)
+        .catch(() => undefined)
+      this.emit('capabilities', parseCapabilities(initialization, session, appliedMode))
       const result: AcpStartResult = {
         sessionId,
         resumed,
@@ -956,7 +965,11 @@ function safeCliEnvironment(base: NodeJS.ProcessEnv, additions?: NodeJS.ProcessE
   )
 }
 
-function parseCapabilities(initialization: unknown, session: unknown): AcpCapabilities {
+function parseCapabilities(
+  initialization: unknown,
+  session: unknown,
+  appliedMode?: 'yolo' | undefined
+): AcpCapabilities {
   const initializationRecord = asRecord(initialization)
   const metadata = asRecord(initializationRecord._meta)
   const modelState = asRecord(initializationRecord.modelState ?? metadata.modelState)
@@ -995,7 +1008,7 @@ function parseCapabilities(initialization: unknown, session: unknown): AcpCapabi
   })
 
   const currentModelId = firstString(modelState.currentModelId, initializationRecord.currentModelId)
-  const currentModeId = normalizeModeId(firstString(
+  const currentModeId = appliedMode ?? normalizeModeId(firstString(
     sessionRecord.currentModeId,
     modeState.currentModeId,
     typeof sessionRecord.mode === 'string' ? sessionRecord.mode : undefined
@@ -1008,15 +1021,17 @@ function parseCapabilities(initialization: unknown, session: unknown): AcpCapabi
   }
 }
 
-function normalizeModeId(value: string | undefined): 'default' | 'plan' | 'ask' | undefined {
+function normalizeModeId(value: string | undefined): 'default' | 'plan' | 'ask' | 'yolo' | undefined {
   if (value === 'default' || value === 'agent') return 'default'
   if (value === 'plan') return 'plan'
   if (value === 'ask') return 'ask'
+  if (value === 'yolo') return 'yolo'
   return undefined
 }
 
-function modeLabel(mode: 'default' | 'plan' | 'ask'): string {
+function modeLabel(mode: 'default' | 'plan' | 'ask' | 'yolo'): string {
   if (mode === 'default') return 'Agent'
+  if (mode === 'yolo') return 'Auto accept'
   return mode === 'plan' ? 'Plan' : 'Ask'
 }
 

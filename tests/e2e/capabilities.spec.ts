@@ -39,14 +39,8 @@ test('uses only CLI-advertised model, mode, and context capabilities', async () 
     )
     await expect(model).toHaveValue('grok-4.6')
     await expect(model.locator('option')).toHaveText(['grok-4.6'])
-    const mode = page.getByLabel('Agent mode')
-    await expect(mode).toBeDisabled()
-    await expect(mode).toHaveAttribute(
-      'title',
-      'Mode options become available after Grok connects.'
-    )
-    await expect(mode).toHaveValue('default')
-    await expect(mode.locator('option')).toHaveText(['default'])
+    // The composer exposes no mode picker: GrokBuild pins the CLI to `yolo`.
+    await expect(page.getByLabel('Agent mode')).toHaveCount(0)
     await page.getByTestId('prompt-input').fill('Probe strict capabilities')
     await page.getByTestId('send-prompt').click()
     await expect(page.getByText('CAPABILITY_TRUTH_OK')).toBeVisible()
@@ -56,10 +50,7 @@ test('uses only CLI-advertised model, mode, and context capabilities', async () 
     await expect(model.locator('option')).toHaveCount(1)
     await expect(model.locator('option')).toHaveText(['QA Solo 131K'])
 
-    await expect(mode).toBeEnabled()
-    await expect(mode).toHaveValue('ask')
-    await expect(mode.locator('option')).toHaveCount(1)
-    await expect(mode.locator('option')).toHaveText(['Ask only'])
+    await expect(page.getByLabel('Agent mode')).toHaveCount(0)
 
     const contextMeter = page.getByRole('button', { name: 'Context usage' })
     await expect(contextMeter).toHaveAttribute(

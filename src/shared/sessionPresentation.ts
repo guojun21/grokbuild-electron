@@ -221,3 +221,11 @@ export function compactDashboardRole(roleName: string): string {
   const trimmed = roleName.trim()
   return trimmed.startsWith('Default') ? 'Default' : trimmed
 }
+
+/** Display name for a Grok session mode. `yolo` is never shown by that name. */
+export function modeLabel(mode: 'default' | 'plan' | 'ask' | 'yolo'): string {
+  if (mode === 'plan') return 'Plan'
+  if (mode === 'yolo') return 'Auto accept'
+  if (mode === 'ask') return 'Ask'
+  return 'Agent'
+}

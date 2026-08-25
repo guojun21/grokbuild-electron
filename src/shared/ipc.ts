@@ -224,7 +224,7 @@ export const updateSessionInput = z
   .object({
     sessionId: identifier,
     model: z.string().min(1).max(128).optional(),
-    mode: z.enum(['default', 'plan', 'ask']).optional(),
+    mode: z.enum(['default', 'plan', 'ask', 'yolo']).optional(),
     reasoningEffort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']).optional(),
     permissionMode: z.enum(['ask', 'auto']).optional()
   })
