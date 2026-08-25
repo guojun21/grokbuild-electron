@@ -1,3 +1,4 @@
+import type { AttachmentItemSummary } from './attachments'
 import type { PendingInteraction, PublicPendingInteraction } from './acp/interactions'
 import type { TurnTokenUsage } from './acp/usage'
 import type { ActivityEntry, ActivityKind } from './acp/activity'
@@ -14,6 +15,8 @@ export type TranscriptItem =
       text: string
       createdAt: string
       streaming?: boolean
+      /** Bounded display metadata for the attachments this user turn carried. */
+      attachments?: AttachmentItemSummary[]
     }
   | {
       id: string

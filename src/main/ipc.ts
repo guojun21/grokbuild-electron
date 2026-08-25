@@ -195,10 +195,12 @@ export function registerIpc(
     })
     if (result.canceled || result.filePaths.length === 0) return null
     try {
-      return attachmentSelectionSummarySchema.parse(withImagePreviews(
+      const summary = attachmentSelectionSummarySchema.parse(withImagePreviews(
         await controller.stageAttachments(sessionId, result.filePaths),
         result.filePaths
       ))
+      controller.rememberAttachmentDisplayItems(summary.token, summary.attachments)
+      return summary
     } catch (error) {
       throw publicAttachmentError(error)
     }
@@ -227,10 +229,12 @@ export function registerIpc(
     try {
       await mkdir(temporaryDirectory, { mode: 0o700 })
       await writeFile(temporaryPath, image.toPNG(), { mode: 0o600 })
-      return attachmentSelectionSummarySchema.parse(withImagePreviews(
+      const summary = attachmentSelectionSummarySchema.parse(withImagePreviews(
         await controller.stageAttachments(sessionId, [temporaryPath]),
         [temporaryPath]
       ))
+      controller.rememberAttachmentDisplayItems(summary.token, summary.attachments)
+      return summary
     } catch (error) {
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined)
       throw publicAttachmentError(error)

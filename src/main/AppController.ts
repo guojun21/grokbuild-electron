@@ -36,6 +36,7 @@ import {
   AttachmentBrokerError
 } from './attachments/AttachmentBroker'
 import type {
+  AttachmentItemSummary,
   AttachmentPromptBlock,
   AttachmentSelectionSummary,
   ConsumedAttachments
@@ -1412,17 +1413,45 @@ export class AppController extends EventEmitter<{
     this.getSession(sessionId)
     const consumed = await this.attachments.consume(sessionId, attachmentToken)
     const composed = composeAttachmentPrompt(userText, consumed)
-    this.startPrompt(sessionId, composed.blocks, composed.transcriptText)
+    this.startPrompt(
+      sessionId,
+      composed.blocks,
+      composed.transcriptText,
+      this.takeAttachmentDisplayItems(attachmentToken)
+    )
+  }
+
+  /**
+   * Display metadata (names plus bounded preview thumbnails) for staged
+   * selections, keyed by lease token. Populated by the IPC layer after
+   * staging so a sent user message can carry what it attached.
+   */
+  private readonly attachmentDisplayItems = new Map<string, AttachmentItemSummary[]>()
+
+  rememberAttachmentDisplayItems(token: string, items: readonly AttachmentItemSummary[]): void {
+    if (this.attachmentDisplayItems.size >= 32) {
+      const oldest = this.attachmentDisplayItems.keys().next().value
+      if (oldest !== undefined) this.attachmentDisplayItems.delete(oldest)
+    }
+    this.attachmentDisplayItems.set(token, [...items])
+  }
+
+  private takeAttachmentDisplayItems(token: string): AttachmentItemSummary[] | undefined {
+    const items = this.attachmentDisplayItems.get(token)
+    this.attachmentDisplayItems.delete(token)
+    return items
   }
 
   private startPrompt(
     sessionId: string,
     prompt: string | AttachmentPromptBlock[],
-    transcriptText: string
+    transcriptText: string,
+    attachmentItems?: readonly AttachmentItemSummary[]
   ): void {
     this.workingSinceBySessionId.set(sessionId, new Date().toISOString())
     this.clearSessionUnread(sessionId)
-    this.updateSessionRecord(sessionId, (current) => appendUserMessage(current, transcriptText))
+    this.updateSessionRecord(sessionId, (current) =>
+      appendUserMessage(current, transcriptText, attachmentItems))
     const lifecycleTurn = (this.lifecycleTurns.get(sessionId) ?? 0) + 1
     this.lifecycleTurns.set(sessionId, lifecycleTurn)
     this.emit('sessionLifecycle', { sessionId, status: 'started' })

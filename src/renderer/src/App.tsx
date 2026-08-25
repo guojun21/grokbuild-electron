@@ -27,8 +27,71 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { Sidebar } from './components/Sidebar'
 import { Transcript } from './components/Transcript'
 
+const SIDEBAR_WIDTH_DEFAULT = 272
+const SIDEBAR_WIDTH_MIN = 200
+const SIDEBAR_WIDTH_MAX = 460
+const SIDEBAR_WIDTH_KEY = 'grokbuild.sidebarWidth'
+
+function clampSidebarWidth(value: number): number {
+  if (!Number.isFinite(value)) return SIDEBAR_WIDTH_DEFAULT
+  return Math.min(SIDEBAR_WIDTH_MAX, Math.max(SIDEBAR_WIDTH_MIN, Math.round(value)))
+}
+
+/**
+ * Drag handle between the sidebar and the conversation. Width is a pure
+ * display preference, so it lives in localStorage rather than the main-owned
+ * settings store. Double-click restores the default.
+ */
+function SidebarResizer({
+  width,
+  onResize
+}: {
+  width: number
+  onResize: (width: number) => void
+}): React.JSX.Element {
+  const start = (event: React.MouseEvent): void => {
+    event.preventDefault()
+    const originX = event.clientX
+    const originWidth = width
+    document.body.classList.add('resizing-sidebar')
+    const move = (moveEvent: MouseEvent): void => {
+      onResize(clampSidebarWidth(originWidth + (moveEvent.clientX - originX)))
+    }
+    const stop = (): void => {
+      document.body.classList.remove('resizing-sidebar')
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', stop)
+    }
+    window.addEventListener('mousemove', move)
+    window.addEventListener('mouseup', stop)
+  }
+  return (
+    <div
+      className="sidebar-resizer"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize sidebar"
+      title="Drag to resize · double-click to reset"
+      onMouseDown={start}
+      onDoubleClick={() => onResize(SIDEBAR_WIDTH_DEFAULT)}
+    />
+  )
+}
+
 export function App(): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<AppSnapshot>()
+  const [sidebarWidth, setSidebarWidthState] = useState(() =>
+    clampSidebarWidth(Number(window.localStorage.getItem(SIDEBAR_WIDTH_KEY) ?? SIDEBAR_WIDTH_DEFAULT))
+  )
+  const setSidebarWidth = useCallback((value: number): void => {
+    const next = clampSidebarWidth(value)
+    setSidebarWidthState(next)
+    try {
+      window.localStorage.setItem(SIDEBAR_WIDTH_KEY, String(next))
+    } catch {
+      // Display preference only; losing it is harmless.
+    }
+  }, [])
   const [fatalError, setFatalError] = useState<string>()
   const [operationError, setOperationError] = useState<string>()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -352,7 +415,12 @@ export function App(): React.JSX.Element {
   }
 
   return (
-    <div className="app-shell" data-testid="app-shell">
+    <div
+      className="app-shell"
+      data-testid="app-shell"
+      style={{ ['--sidebar-width' as string]: `${sidebarWidth}px` }}
+    >
+      <SidebarResizer width={sidebarWidth} onResize={setSidebarWidth} />
       <Sidebar
         snapshot={snapshot}
         privacy={privacy}
@@ -552,6 +620,7 @@ export function App(): React.JSX.Element {
             <>
               <Transcript
                 session={selectedSession}
+                privacyEnabled={privacy.enabled}
                 onAnswerPermission={(requestId, optionId) => runAction(() => window.grokbuild.answerPermission({ sessionId: selectedSession.id, requestId, optionId }))}
                 onAnswerInteraction={(interactionId, answer) => runAction(() => window.grokbuild.answerInteraction({ sessionId: selectedSession.id, interactionId, answer }))}
               />

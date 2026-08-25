@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bot, Check, ChevronRight, CircleAlert, CircleDashed, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
+import { Bot, Check, ChevronRight, CircleAlert, CircleDashed, FileText, Image, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
 import type { PublicSessionSnapshot, TranscriptItem } from '../../../shared/models'
 import type {
   InteractionAnswer,
@@ -10,11 +10,12 @@ import { SafeMarkdown } from './SafeMarkdown'
 
 interface TranscriptProps {
   session: PublicSessionSnapshot
+  privacyEnabled: boolean
   onAnswerPermission: (requestId: string, optionId: string) => void
   onAnswerInteraction: (interactionId: string, answer: InteractionAnswer) => void
 }
 
-export function Transcript({ session, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
+export function Transcript({ session, privacyEnabled, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
   if (session.transcript.length === 0 && !session.pendingPermission && !session.pendingInteraction) {
     return (
       <div className="empty-transcript" data-testid="empty-transcript">
@@ -32,7 +33,7 @@ export function Transcript({ session, onAnswerPermission, onAnswerInteraction }:
 
   return (
     <div className="transcript" data-testid="transcript" aria-live="polite">
-      {session.transcript.map((item) => <TranscriptRow key={item.id} item={item} />)}
+      {session.transcript.map((item) => <TranscriptRow key={item.id} item={item} privacyEnabled={privacyEnabled} />)}
       {session.pendingPermission ? (
         <section className="permission-card" data-testid="permission-card">
           <div className="permission-icon"><CircleAlert size={17} /></div>
@@ -63,6 +64,64 @@ export function Transcript({ session, onAnswerPermission, onAnswerInteraction }:
       ) : null}
       {session.status === 'running' ? <WorkingLine /> : null}
     </div>
+  )
+}
+
+const ATTACHMENT_NOTE = /^Attached (?:image|images|file|files): (.+)$/
+
+/**
+ * User text echoes back with the attachment note blocks main added to the
+ * prompt. When the message carries attachment metadata, note lines disappear
+ * in favor of preview thumbnails; otherwise (older sessions) they render as
+ * compact tags. Either way "Attached image: …" stops reading like a path the
+ * agent is asked to open — the image bytes travel in the same prompt.
+ */
+function UserMessageText({
+  text,
+  attachments,
+  privacyEnabled
+}: {
+  text: string
+  attachments?: readonly { kind: 'file' | 'image'; displayName: string; preview?: string | undefined }[] | undefined
+  privacyEnabled: boolean
+}): React.JSX.Element {
+  const lines = text.split('\n')
+  const hasNotes = lines.some((line) => ATTACHMENT_NOTE.test(line))
+  if (!hasNotes && !attachments?.length) {
+    return <div className="message-text">{text}</div>
+  }
+  const plain = lines.filter((line) => !ATTACHMENT_NOTE.test(line)).join('\n').trim()
+  return (
+    <>
+      {plain ? <div className="message-text">{plain}</div> : null}
+      {attachments?.length ? (
+        <div className="message-attachment-tags">
+          {attachments.map((attachment, index) =>
+            attachment.kind === 'image' && attachment.preview && !privacyEnabled ? (
+              <span className="attachment-thumb" key={index} title={attachment.displayName}>
+                <img src={attachment.preview} alt={attachment.displayName} draggable={false} />
+              </span>
+            ) : (
+              <span className="message-attachment-tag" key={index}>
+                {attachment.kind === 'image' ? <Image size={11} /> : <FileText size={11} />}
+                {attachment.displayName}
+              </span>
+            )
+          )}
+        </div>
+      ) : (
+        <div className="message-attachment-tags">
+          {lines.filter((line) => ATTACHMENT_NOTE.test(line)).flatMap((line) =>
+            (ATTACHMENT_NOTE.exec(line)?.[1] ?? '').split(', ').map((name) => (
+              <span className="message-attachment-tag" key={`${line}-${name}`}>
+                {line.startsWith('Attached image') ? <Image size={11} /> : <FileText size={11} />}
+                {name}
+              </span>
+            ))
+          )}
+        </div>
+      )}
+    </>
   )
 }
 
@@ -274,7 +333,7 @@ function QuestionInteractionCard({
   )
 }
 
-function TranscriptRow({ item }: { item: TranscriptItem }): React.JSX.Element {
+function TranscriptRow({ item, privacyEnabled }: { item: TranscriptItem; privacyEnabled: boolean }): React.JSX.Element {
   if (item.kind === 'message') {
     return (
       <article className={`message-row role-${item.role}`} data-kind={item.kind}>
@@ -282,7 +341,7 @@ function TranscriptRow({ item }: { item: TranscriptItem }): React.JSX.Element {
           <div className="message-label">{item.role === 'user' ? 'You' : 'Grok'}</div>
           {item.role === 'assistant'
             ? <SafeMarkdown source={item.text} />
-            : <div className="message-text">{item.text}</div>}
+            : <UserMessageText text={item.text} attachments={item.attachments} privacyEnabled={privacyEnabled} />}
         </div>
       </article>
     )

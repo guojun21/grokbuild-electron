@@ -1,4 +1,5 @@
 import type { SessionSnapshot, TranscriptItem } from '../models'
+import type { AttachmentItemSummary } from '../attachments'
 import type { NormalizedAcpEvent } from '../acp/events'
 import {
   MAX_ACTIVITY_COUNT,
@@ -195,14 +196,25 @@ function findLastAssistantSinceUser(transcript: TranscriptItem[]): number {
   return -1
 }
 
-export function appendUserMessage(session: SessionSnapshot, text: string): SessionSnapshot {
+export function appendUserMessage(
+  session: SessionSnapshot,
+  text: string,
+  attachments?: readonly AttachmentItemSummary[]
+): SessionSnapshot {
   const createdAt = now()
   return withoutPendingHooks({
     ...session,
     status: 'running',
     transcript: boundTranscript([
       ...closeOpenActivities(closeStreaming(session.transcript)),
-      { id: crypto.randomUUID(), kind: 'message', role: 'user', text, createdAt }
+      {
+        id: crypto.randomUUID(),
+        kind: 'message',
+        role: 'user',
+        text,
+        createdAt,
+        ...(attachments && attachments.length > 0 ? { attachments: [...attachments] } : {})
+      }
     ]),
     updatedAt: createdAt
   }, 0)

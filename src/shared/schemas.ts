@@ -4,6 +4,7 @@ import {
   pendingInteractionSchema,
   publicPendingInteractionSchema
 } from './acp/interactions'
+import { attachmentItemSummarySchema } from './attachments'
 import { turnTokenUsageSchema } from './acp/usage'
 import { MAX_ACTIVITY_COUNT, activityEntrySchema, activityKindSchema } from './acp/activity'
 import { workspaceHealthResultSchema } from './workspaceHealth'
@@ -47,7 +48,8 @@ const messageItemSchema = z.object({
   role: z.enum(['user', 'assistant']),
   text: z.string().max(2 * 1024 * 1024 + 64),
   createdAt: timestamp,
-  streaming: z.boolean().optional()
+  streaming: z.boolean().optional(),
+  attachments: z.array(attachmentItemSummarySchema).min(1).max(16).optional()
 }).strict()
 
 const thoughtItemSchema = z.object({

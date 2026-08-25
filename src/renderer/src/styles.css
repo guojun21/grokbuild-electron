@@ -72,7 +72,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   outline-offset: 2px;
 }
 
-.app-shell { display: grid; grid-template-columns: 272px minmax(0, 1fr); height: 100%; background: var(--canvas); }
+.app-shell { position: relative; display: grid; grid-template-columns: var(--sidebar-width, 272px) minmax(0, 1fr); height: 100%; background: var(--canvas); }
+.sidebar-resizer { position: absolute; z-index: 40; top: 0; bottom: 0; left: calc(var(--sidebar-width, 272px) - 3px); width: 7px; cursor: col-resize; -webkit-app-region: no-drag; }
+.sidebar-resizer:hover, body.resizing-sidebar .sidebar-resizer { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-select: none; }
 .sidebar { display: flex; flex-direction: column; min-width: 0; background: var(--sidebar); border-right: 1px solid var(--line); }
 .sidebar-titlebar { height: 42px; flex: 0 0 42px; -webkit-app-region: drag; }
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; height: 40px; padding: 0 12px 0 16px; }
@@ -312,6 +315,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .attachment-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .attachment-thumb { display: inline-flex; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 .attachment-thumb img { display: block; width: auto; height: 52px; max-width: 120px; object-fit: cover; }
+.message-attachment-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.message-attachment-tags .attachment-thumb img { height: 88px; max-width: 220px; }
+.message-attachment-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--muted); font-size: 10.5px; }
 .attachment-strip > button { flex: 0 0 auto; height: 24px; display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 10px; }
 .attachment-strip > button:hover { background: var(--line); color: var(--text); }
 .composer-controls { display: flex; align-items: center; justify-content: space-between; min-height: 37px; padding: 0 8px 7px; gap: 8px; }
