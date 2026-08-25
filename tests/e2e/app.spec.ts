@@ -67,6 +67,7 @@ test('keeps Node isolated and exposes only the named bridge', async () => {
       'cancelAttachments',
       'cancelSwiftImport',
       'cancelTurn',
+      'captureClipboardImage',
       'checkAccount',
       'checkDoctor',
       'checkUpdates',

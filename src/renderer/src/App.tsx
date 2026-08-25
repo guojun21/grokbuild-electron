@@ -253,6 +253,16 @@ export function App(): React.JSX.Element {
     })
   }
 
+  async function captureClipboardImage(sessionId: string): Promise<AttachmentSelectionSummary | null> {
+    setOperationError(undefined)
+    try {
+      return await window.grokbuild.captureClipboardImage({ sessionId })
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : String(error))
+      return null
+    }
+  }
+
   async function chooseAttachments(sessionId: string): Promise<AttachmentSelectionSummary | null> {
     setOperationError(undefined)
     try {
@@ -552,6 +562,7 @@ export function App(): React.JSX.Element {
                 workspaceReady={selectedWorkspaceHealth === 'ready'}
                 onSend={(text, attachmentToken) => sendComposerPrompt(selectedSession.id, text, attachmentToken)}
                 onChooseAttachments={() => chooseAttachments(selectedSession.id)}
+                onCaptureClipboardImage={() => captureClipboardImage(selectedSession.id)}
                 onCancelAttachments={(token) => window.grokbuild.cancelAttachments({
                   sessionId: selectedSession.id,
                   token

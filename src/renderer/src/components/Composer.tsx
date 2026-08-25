@@ -19,6 +19,7 @@ interface ComposerProps {
   workspaceReady: boolean
   onSend: (text: string, attachmentToken?: string) => Promise<boolean>
   onChooseAttachments: () => Promise<AttachmentSelectionSummary | null>
+  onCaptureClipboardImage: () => Promise<AttachmentSelectionSummary | null>
   onCancelAttachments: (token: string) => Promise<void>
   onCancel: () => void
   onBindSavedAgent: (agentId: string | null, expectedRevision: number) => Promise<boolean>
@@ -32,6 +33,7 @@ export function Composer({
   workspaceReady,
   onSend,
   onChooseAttachments,
+  onCaptureClipboardImage,
   onCancelAttachments,
   onCancel,
   onBindSavedAgent,
@@ -118,7 +120,9 @@ export function Composer({
     setSelection(next)
   }
 
-  async function chooseAttachments(): Promise<void> {
+  async function acquireAttachments(
+    source: () => Promise<AttachmentSelectionSummary | null>
+  ): Promise<void> {
     if (workspaceBlocked || turnActive || choosingAttachments || submitting) return
     const choosingSessionId = session.id
     setChoosingAttachments(true)
@@ -128,7 +132,7 @@ export function Composer({
         replaceSelection(undefined)
         await onCancelAttachments(previous.token).catch(() => undefined)
       }
-      const next = await onChooseAttachments()
+      const next = await source()
       if (sessionIdRef.current !== choosingSessionId) {
         if (next) await onCancelAttachments(next.token).catch(() => undefined)
         return
@@ -137,6 +141,10 @@ export function Composer({
     } finally {
       if (sessionIdRef.current === choosingSessionId) setChoosingAttachments(false)
     }
+  }
+
+  async function chooseAttachments(): Promise<void> {
+    await acquireAttachments(onChooseAttachments)
   }
 
   function clearAttachments(): void {
@@ -176,6 +184,14 @@ export function Composer({
               event.preventDefault()
               void submit()
             }
+          }}
+          onPaste={(event) => {
+            const items = event.clipboardData ? Array.from(event.clipboardData.items) : []
+            if (!items.some((item) => item.kind === 'file' && item.type.startsWith('image/'))) return
+            // Main reads the image straight from the system clipboard; the
+            // renderer only reports that a paste happened.
+            event.preventDefault()
+            void acquireAttachments(onCaptureClipboardImage)
           }}
           placeholder="Plan, build, or / for skills"
           aria-label="Message Grok"
