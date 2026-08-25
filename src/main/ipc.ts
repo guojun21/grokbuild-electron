@@ -21,6 +21,7 @@ import {
   cancelAttachmentsInput,
   cancelTurnInput,
   chooseAttachmentsInput,
+  copyTextInput,
   closeSessionInput,
   createSessionInput,
   createSavedAgentInput,
@@ -215,19 +216,20 @@ export function registerIpc(
     }
     const image = clipboard.readImage()
     if (image.isEmpty()) return null
-    // The pasted bitmap becomes an owner-only temp file so it can ride the
-    // exact staging pipeline (sniffing, limits, leases) the file dialog uses.
-    // The file must outlive the lease: the broker's stability check folds
-    // ctime into the file identity, and an early unlink bumps ctime, so the
-    // send would fail as tampered. Cleanup instead happens here for pastes
-    // older than an hour (lease TTL is five minutes), with macOS temp
-    // reaping as the backstop. The random segment lives in the directory
-    // name so the chip label stays human-readable.
+    // The pasted bitmap becomes an owner-only file so it can ride the exact
+    // staging pipeline (sniffing, limits, leases) the file dialog uses. It
+    // lives under userData rather than the OS temp directory because the
+    // viewer exposes the absolute path for copying, so it must stay valid
+    // well past the turn; pastes older than seven days are swept on the next
+    // capture. It also must outlive the lease itself: the broker's stability
+    // check folds ctime into the file identity, and an early unlink bumps
+    // ctime, failing the send as tampered. The random segment lives in the
+    // directory name so the chip label stays human-readable.
     await sweepStalePasteDirectories()
-    const temporaryDirectory = joinPath(app.getPath('temp'), `grokbuild-paste-${randomUUID()}`)
+    const temporaryDirectory = joinPath(app.getPath('userData'), 'pastes', `paste-${randomUUID()}`)
     const temporaryPath = joinPath(temporaryDirectory, 'Pasted image.png')
     try {
-      await mkdir(temporaryDirectory, { mode: 0o700 })
+      await mkdir(temporaryDirectory, { recursive: true, mode: 0o700 })
       await writeFile(temporaryPath, image.toPNG(), { mode: 0o600 })
       const summary = attachmentSelectionSummarySchema.parse(withImagePreviews(
         await controller.stageAttachments(sessionId, [temporaryPath]),
@@ -239,6 +241,11 @@ export function registerIpc(
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined)
       throw publicAttachmentError(error)
     }
+  })
+  ipcMain.handle(IPC.copyText, (event, raw) => {
+    validSender(event)
+    const { text } = copyTextInput.parse(raw)
+    clipboard.writeText(text)
   })
   ipcMain.handle(IPC.cancelAttachments, async (event, raw) => {
     validSender(event)
@@ -823,34 +830,35 @@ function withImagePreviews(
   return {
     ...summary,
     attachments: summary.attachments.map((attachment) => {
-      if (attachment.kind !== 'image') return attachment
       const index = remaining.findIndex((path) => basename(path) === attachment.displayName)
       if (index < 0) return attachment
       const [path] = remaining.splice(index, 1)
+      const withPath = { ...attachment, path: path! }
+      if (attachment.kind !== 'image') return withPath
       try {
         const image = nativeImage.createFromPath(path!)
-        if (image.isEmpty()) return attachment
+        if (image.isEmpty()) return withPath
         const size = image.getSize()
         const scaled = size.height > PREVIEW_HEIGHT ? image.resize({ height: PREVIEW_HEIGHT }) : image
         const preview = `data:image/jpeg;base64,${scaled.toJPEG(82).toString('base64')}`
-        if (preview.length > MAX_PREVIEW_CHARS) return attachment
-        return { ...attachment, preview }
+        if (preview.length > MAX_PREVIEW_CHARS) return withPath
+        return { ...withPath, preview }
       } catch {
-        return attachment
+        return withPath
       }
     })
   }
 }
 
-/** Remove pasted-image temp directories once their lease can no longer exist. */
+/** Remove pasted-image directories after their copyable path has gone stale. */
 async function sweepStalePasteDirectories(): Promise<void> {
-  const temporaryRoot = app.getPath('temp')
-  const staleBeforeMs = Date.now() - 60 * 60_000
-  const names = await readdir(temporaryRoot).catch(() => [] as string[])
+  const pasteRoot = joinPath(app.getPath('userData'), 'pastes')
+  const staleBeforeMs = Date.now() - 7 * 24 * 60 * 60_000
+  const names = await readdir(pasteRoot).catch(() => [] as string[])
   await Promise.all(names
-    .filter((name) => name.startsWith('grokbuild-paste-'))
+    .filter((name) => name.startsWith('paste-'))
     .map(async (name) => {
-      const path = joinPath(temporaryRoot, name)
+      const path = joinPath(pasteRoot, name)
       const info = await stat(path).catch(() => undefined)
       if (!info || info.mtimeMs >= staleBeforeMs) return
       await rm(path, { recursive: true, force: true }).catch(() => undefined)

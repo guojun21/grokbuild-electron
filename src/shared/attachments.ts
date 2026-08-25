@@ -26,14 +26,16 @@ const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012
 const BASE64_BODY = /^[A-Za-z0-9+/]*={0,2}$/
 
 /**
- * Renderer-safe metadata. It intentionally contains neither paths nor original
- * image bytes; `preview` is a bounded, main-generated thumbnail re-encode for
- * display only.
+ * Renderer-safe display metadata. `preview` is a bounded, main-generated
+ * thumbnail re-encode; `path` is the selected file's absolute path, exposed
+ * by owner decision so the viewer can copy it. Original image bytes still
+ * never cross into the renderer.
  */
 export interface AttachmentItemSummary {
   kind: AttachmentKind
   displayName: string
   preview?: string | undefined
+  path?: string | undefined
 }
 
 /** An opaque, session-scoped lease for a staged attachment selection. */
@@ -49,7 +51,8 @@ export const attachmentItemSummarySchema = z.object({
   preview: z.string()
     .max(400_000)
     .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/]+={0,2}$/)
-    .optional()
+    .optional(),
+  path: z.string().min(1).max(4_096).optional()
 }).strict()
 
 /** Output guard for the only attachment shape permitted to cross into renderer. */

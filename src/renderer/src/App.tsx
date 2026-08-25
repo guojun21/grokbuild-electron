@@ -50,21 +50,36 @@ function SidebarResizer({
   width: number
   onResize: (width: number) => void
 }): React.JSX.Element {
-  const start = (event: React.MouseEvent): void => {
+  // Pointer capture keeps move/up events flowing to the handle even when the
+  // cursor leaves the window mid-drag; the plain mouse-event version lost the
+  // mouseup there and left the drag armed forever.
+  const start = (event: React.PointerEvent<HTMLDivElement>): void => {
     event.preventDefault()
+    const handle = event.currentTarget
+    const pointerId = event.pointerId
     const originX = event.clientX
     const originWidth = width
     document.body.classList.add('resizing-sidebar')
-    const move = (moveEvent: MouseEvent): void => {
+    handle.setPointerCapture(pointerId)
+    const move = (moveEvent: PointerEvent): void => {
+      if (moveEvent.pointerId !== pointerId) return
       onResize(clampSidebarWidth(originWidth + (moveEvent.clientX - originX)))
     }
-    const stop = (): void => {
+    const stop = (stopEvent: PointerEvent): void => {
+      if (stopEvent.pointerId !== pointerId) return
       document.body.classList.remove('resizing-sidebar')
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('mouseup', stop)
+      try {
+        handle.releasePointerCapture(pointerId)
+      } catch {
+        // Already released.
+      }
+      handle.removeEventListener('pointermove', move)
+      handle.removeEventListener('pointerup', stop)
+      handle.removeEventListener('pointercancel', stop)
     }
-    window.addEventListener('mousemove', move)
-    window.addEventListener('mouseup', stop)
+    handle.addEventListener('pointermove', move)
+    handle.addEventListener('pointerup', stop)
+    handle.addEventListener('pointercancel', stop)
   }
   return (
     <div
@@ -73,7 +88,7 @@ function SidebarResizer({
       aria-orientation="vertical"
       aria-label="Resize sidebar"
       title="Drag to resize · double-click to reset"
-      onMouseDown={start}
+      onPointerDown={start}
       onDoubleClick={() => onResize(SIDEBAR_WIDTH_DEFAULT)}
     />
   )

@@ -8,6 +8,7 @@ const bridge: GrokBuildBridge = {
   chooseProject: () => ipcRenderer.invoke(IPC.chooseProject),
   chooseAttachments: (input) => ipcRenderer.invoke(IPC.chooseAttachments, input),
   captureClipboardImage: (input) => ipcRenderer.invoke(IPC.captureClipboardImage, input),
+  copyText: (input) => ipcRenderer.invoke(IPC.copyText, input),
   cancelAttachments: (input) => ipcRenderer.invoke(IPC.cancelAttachments, input),
   chooseGrokCli: () => ipcRenderer.invoke(IPC.chooseGrokCli),
   createSession: (input) => ipcRenderer.invoke(IPC.createSession, input),

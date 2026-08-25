@@ -76,6 +76,7 @@ test('keeps Node isolated and exposes only the named bridge', async () => {
       'chooseProject',
       'closeSession',
       'commitSwiftImport',
+      'copyText',
       'createSavedAgent',
       'createSession',
       'deleteMemory',
@@ -428,10 +429,11 @@ test('sends bounded multimodal blocks without exposing attachment capabilities o
   await expect.poll(async () => readFile(join(profilePath, 'profile/state.json'), 'utf8'))
     .toContain('Inspect selected attachments')
   const persisted = await readFile(join(profilePath, 'profile/state.json'), 'utf8')
+  // Absolute paths are deliberately part of the display metadata now (the
+  // lightbox caption copies them on click); original bytes and file contents
+  // must still never surface.
   for (const surface of [serializedSnapshot, persisted, dom]) {
     expect(surface).not.toContain(imageBase64)
-    expect(surface).not.toContain(imagePath)
-    expect(surface).not.toContain(notePath)
     expect(surface).not.toContain(fileContentCanary)
   }
 })

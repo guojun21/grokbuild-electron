@@ -20,7 +20,7 @@ interface ComposerProps {
   onSend: (text: string, attachmentToken?: string) => Promise<boolean>
   onChooseAttachments: () => Promise<AttachmentSelectionSummary | null>
   onCaptureClipboardImage: () => Promise<AttachmentSelectionSummary | null>
-  onPreviewImage: (request: { src: string; name: string; origin: { x: number; y: number; width: number; height: number } }) => void
+  onPreviewImage: (request: { src: string; name: string; path?: string | undefined; origin: { x: number; y: number; width: number; height: number } }) => void
   onCancelAttachments: (token: string) => Promise<void>
   onCancel: () => void
   onBindSavedAgent: (agentId: string | null, expectedRevision: number) => Promise<boolean>
@@ -216,6 +216,7 @@ export function Composer({
                     onClick={(event) => onPreviewImage({
                       src: attachment.preview!,
                       name: attachment.displayName,
+                      path: attachment.path,
                       origin: event.currentTarget.getBoundingClientRect()
                     })}
                   >

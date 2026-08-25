@@ -77,6 +77,7 @@ export interface GrokBuildBridge {
   chooseProject: () => Promise<ProjectSnapshot | null>
   chooseAttachments: (input: ChooseAttachmentsInput) => Promise<AttachmentSelectionSummary | null>
   captureClipboardImage: (input: ChooseAttachmentsInput) => Promise<AttachmentSelectionSummary | null>
+  copyText: (input: { text: string }) => Promise<void>
   cancelAttachments: (input: CancelAttachmentsInput) => Promise<void>
   chooseGrokCli: () => Promise<string | null>
   createSession: (input: CreateSessionInput) => Promise<PublicSessionSnapshot>

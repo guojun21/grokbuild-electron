@@ -1,8 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface LightboxRequest {
   src: string
   name: string
+  /** Absolute path of the source file; the caption copies it on click. */
+  path?: string | undefined
   /** Where the clicked thumbnail sat, so the zoom can grow out of it. */
   origin: { x: number; y: number; width: number; height: number }
 }
@@ -22,6 +24,16 @@ export function ImageLightbox({
   const backdrop = useRef<HTMLDivElement>(null)
   const frame = useRef<HTMLImageElement>(null)
   const closing = useRef(false)
+  const [copied, setCopied] = useState(false)
+  const caption = request.path ?? request.name
+
+  const copyCaption = (event: React.MouseEvent): void => {
+    event.stopPropagation()
+    void window.grokbuild.copyText({ text: caption }).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1300)
+    }).catch(() => undefined)
+  }
 
   const close = (): void => {
     if (closing.current) return
@@ -70,7 +82,14 @@ export function ImageLightbox({
       onClick={close}
     >
       <img ref={frame} className="lightbox-image" src={request.src} alt={request.name} draggable={false} />
-      <div className="lightbox-caption">{request.name}</div>
+      <button
+        type="button"
+        className="lightbox-caption"
+        title="Click to copy the file path"
+        onClick={copyCaption}
+      >
+        {copied ? 'Copied ✓' : caption}
+      </button>
     </div>
   )
 }

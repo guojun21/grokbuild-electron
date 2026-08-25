@@ -113,6 +113,10 @@ export const chooseAttachmentsInput = z.object({
   sessionId: identifier
 }).strict()
 
+export const copyTextInput = z.object({
+  text: z.string().min(1).max(8_192)
+}).strict()
+
 export const cancelAttachmentsInput = z.object({
   sessionId: identifier,
   token: attachmentToken

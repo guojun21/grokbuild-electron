@@ -11,7 +11,7 @@ import { SafeMarkdown } from './SafeMarkdown'
 interface TranscriptProps {
   session: PublicSessionSnapshot
   privacyEnabled: boolean
-  onPreviewImage: (request: { src: string; name: string; origin: { x: number; y: number; width: number; height: number } }) => void
+  onPreviewImage: (request: { src: string; name: string; path?: string | undefined; origin: { x: number; y: number; width: number; height: number } }) => void
   onAnswerPermission: (requestId: string, optionId: string) => void
   onAnswerInteraction: (interactionId: string, answer: InteractionAnswer) => void
 }
@@ -68,7 +68,7 @@ export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPe
   )
 }
 
-type PreviewImageHandler = (request: { src: string; name: string; origin: { x: number; y: number; width: number; height: number } }) => void
+type PreviewImageHandler = (request: { src: string; name: string; path?: string | undefined; origin: { x: number; y: number; width: number; height: number } }) => void
 
 const ATTACHMENT_NOTE = /^Attached (?:image|images|file|files): (.+)$/
 
@@ -86,7 +86,7 @@ function UserMessageText({
   onPreviewImage
 }: {
   text: string
-  attachments?: readonly { kind: 'file' | 'image'; displayName: string; preview?: string | undefined }[] | undefined
+  attachments?: readonly { kind: 'file' | 'image'; displayName: string; preview?: string | undefined; path?: string | undefined }[] | undefined
   privacyEnabled: boolean
   onPreviewImage: PreviewImageHandler
 }): React.JSX.Element {
@@ -112,6 +112,7 @@ function UserMessageText({
                 onClick={(event) => onPreviewImage({
                   src: attachment.preview!,
                   name: attachment.displayName,
+                  path: attachment.path,
                   origin: event.currentTarget.getBoundingClientRect()
                 })}
               >
