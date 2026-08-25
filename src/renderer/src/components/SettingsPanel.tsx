@@ -24,6 +24,7 @@ interface SettingsPanelProps {
   agentRoster: PublicAgentRosterSnapshot
   sessions: readonly PublicSessionSnapshot[]
   privacy: PrivacyDisplayResolver
+  initialSection?: 'application' | 'account' | 'memory' | 'agents' | 'mcp' | 'import'
   onClose: () => void
   onSave: (settings: Partial<AppSettings>) => void
   onChooseCli: () => void
@@ -39,11 +40,12 @@ export function SettingsPanel({
   agentRoster,
   sessions,
   privacy,
+  initialSection,
   onClose,
   onSave,
   onChooseCli
 }: SettingsPanelProps): React.JSX.Element {
-  const [section, setSection] = useState<'application' | 'account' | 'memory' | 'agents' | 'mcp' | 'import'>('application')
+  const [section, setSection] = useState<'application' | 'account' | 'memory' | 'agents' | 'mcp' | 'import'>(initialSection ?? 'application')
   return (
     <ModalSurface className="settings-dialog" labelledBy="settings-title" onClose={onClose}>
       <section className="settings-panel">

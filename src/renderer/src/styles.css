@@ -155,6 +155,13 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
 .project-remove-confirm button { height: 24px; padding: 0 7px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: 10px; }
 .project-remove-confirm button:hover { background: var(--line); color: var(--text); }
 .project-remove-confirm .danger-text-button { color: var(--danger); font-weight: 600; }
+.sidebar-usage { display: flex; flex-direction: column; gap: 6px; margin: 0 10px 8px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; text-align: left; }
+.sidebar-usage:hover { border-color: var(--line-strong, var(--line)); }
+.sidebar-usage-label { display: flex; align-items: baseline; gap: 6px; font-size: 11px; color: var(--muted); }
+.sidebar-usage-label strong { font-size: 12px; color: var(--text); }
+.sidebar-usage-label small:last-child { margin-left: auto; }
+.sidebar-usage-meter { display: block; height: 4px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.sidebar-usage-meter > span { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
 .settings-row { height: 45px; margin: 0; padding: 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--muted); text-align: left; }
 .settings-row:hover { color: var(--text); background: rgba(255,255,255,.18); }
 .version-label { margin-left: auto; color: var(--faint); font-size: 11px; }

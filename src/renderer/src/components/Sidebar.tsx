@@ -59,6 +59,9 @@ interface SidebarProps {
   onSetSessionSettled: (sessionId: string, settled: boolean) => void
   onSetSessionUnread: (sessionId: string, unread: boolean) => void
   onOpenSettings: () => void
+  /** Rolling allowance summary for the bottom-left quota bar; absent hides it. */
+  usage?: { percent: number; resetsAt: string; periodType?: 'weekly' | 'monthly' | 'other' | undefined } | undefined
+  onOpenAccount: () => void
 }
 
 type MenuTarget = `project:${string}` | `session:${string}`
@@ -81,7 +84,9 @@ export function Sidebar({
   onSetSessionPinned,
   onSetSessionSettled,
   onSetSessionUnread,
-  onOpenSettings
+  onOpenSettings,
+  usage,
+  onOpenAccount
 }: SidebarProps): React.JSX.Element {
   const [openMenu, setOpenMenu] = useState<MenuTarget>()
   const [menuAnchor, setMenuAnchor] = useState<{ top: number; right: number }>()
@@ -642,6 +647,31 @@ export function Sidebar({
         </section>
       ) : null}
 
+      {usage ? (
+        <button
+          className="sidebar-usage"
+          type="button"
+          data-testid="sidebar-usage"
+          title="Open account usage"
+          onClick={onOpenAccount}
+        >
+          <span className="sidebar-usage-label">
+            <small>{usage.periodType === 'weekly' ? 'Week' : usage.periodType === 'monthly' ? 'Month' : 'Usage'}</small>
+            <strong>{formatUsagePercent(usage.percent)}</strong>
+            <small>resets {shortUsageDate(usage.resetsAt)}</small>
+          </span>
+          <span
+            className="sidebar-usage-meter"
+            role="meter"
+            aria-label="Allowance used this period"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.min(100, usage.percent)}
+          >
+            <span style={{ width: `${Math.min(100, Math.max(2, Math.round(usage.percent)))}%` }} />
+          </span>
+        </button>
+      ) : null}
       <button className="settings-row" type="button" onClick={onOpenSettings}>
         <Settings size={15} />
         Settings
@@ -649,6 +679,17 @@ export function Sidebar({
       </button>
     </aside>
   )
+}
+
+const USAGE_MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function formatUsagePercent(value: number): string {
+  return `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)}%`
+}
+
+function shortUsageDate(iso: string): string {
+  const date = new Date(iso)
+  return `${USAGE_MONTH_LABELS[date.getUTCMonth()]} ${date.getUTCDate()}`
 }
 
 function workspaceHealthLabel(state: WorkspaceHealthState): string | undefined {

@@ -117,6 +117,12 @@ export function App(): React.JSX.Element {
   const [fatalError, setFatalError] = useState<string>()
   const [operationError, setOperationError] = useState<string>()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsSection, setSettingsSection] = useState<'application' | 'account'>('application')
+  const [accountUsage, setAccountUsage] = useState<{
+    percent: number
+    resetsAt: string
+    periodType?: 'weekly' | 'monthly' | 'other' | undefined
+  }>()
   const [retryingSessionId, setRetryingSessionId] = useState<string>()
   const [projectOpenTargets, setProjectOpenTargets] = useState<ProjectOpenTargetStatus[]>([])
   const [projectOpenMenu, setProjectOpenMenu] = useState(false)
@@ -334,6 +340,33 @@ export function App(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapshot, queuedBySession])
 
+  // Bottom-left quota bar: refresh the rolling allowance on launch and
+  // half-hourly. Failures keep the last known value rather than flickering.
+  useEffect(() => {
+    let cancelled = false
+    const load = async (): Promise<void> => {
+      try {
+        const report = await window.grokbuild.checkAccount()
+        if (cancelled || report.state !== 'ok') return
+        const usage = report.usage
+        if (usage?.creditUsagePercent === undefined) return
+        setAccountUsage({
+          percent: usage.creditUsagePercent,
+          resetsAt: usage.periodEnd,
+          periodType: usage.periodType
+        })
+      } catch {
+        // Offline or signed out; keep whatever we last showed.
+      }
+    }
+    void load()
+    const timer = window.setInterval(() => { void load() }, 30 * 60_000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [])
+
   if (fatalError) return <div className="fatal-error"><strong>GrokBuild could not start.</strong><span>{fatalError}</span></div>
   if (!snapshot) return <div className="loading-screen"><span className="loading-mark" /> Loading workspace…</div>
 
@@ -498,6 +531,16 @@ export function App(): React.JSX.Element {
           setDashboardOpen(false)
           setHistoryOpen(false)
           setActivityOpen(false)
+          setSettingsSection('application')
+          setSettingsOpen(true)
+        }}
+        usage={accountUsage}
+        onOpenAccount={() => {
+          setProjectOpenMenu(false)
+          setDashboardOpen(false)
+          setHistoryOpen(false)
+          setActivityOpen(false)
+          setSettingsSection('account')
           setSettingsOpen(true)
         }}
       />
@@ -769,6 +812,7 @@ export function App(): React.JSX.Element {
             selectedProjectId: selectedProject.id,
             selectedProjectName: selectedProjectName ?? 'Project'
           } : {})}
+          initialSection={settingsSection}
           onClose={() => setSettingsOpen(false)}
           onSave={(settings) => runAction(() => window.grokbuild.updateSettings(settings))}
           onChooseCli={() => runAction(() => window.grokbuild.chooseGrokCli())}
