@@ -60,6 +60,14 @@ const thoughtItemSchema = z.object({
   streaming: z.boolean().optional()
 }).strict()
 
+const generatedToolImageSchema = z.object({
+  path: z.string().min(1).max(4_096),
+  preview: z.string()
+    .max(400_000)
+    .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/]+={0,2}$/)
+    .optional()
+}).strict()
+
 const toolItemSchema = z.object({
   id: identifier,
   kind: z.literal('tool'),
@@ -67,6 +75,7 @@ const toolItemSchema = z.object({
   status: z.enum(['pending', 'running', 'completed', 'failed']),
   detail: z.string().max(256 * 1024).optional(),
   activityKind: activityKindSchema.optional(),
+  images: z.array(generatedToolImageSchema).min(1).max(4).optional(),
   createdAt: timestamp
 }).strict()
 

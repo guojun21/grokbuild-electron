@@ -333,6 +333,9 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
 .attachment-thumb { display: inline-flex; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); cursor: zoom-in; transition: border-color .15s ease, transform .15s ease; }
 .attachment-thumb:hover { border-color: var(--line-strong); transform: scale(1.02); }
 .attachment-thumb img { display: block; width: 76px; height: 76px; object-fit: cover; }
+.tool-images { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tool-images .tool-image-thumb { padding: 0; }
+.tool-images .tool-image-thumb img { width: 132px; height: 132px; }
 .message-attachment-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .lightbox-backdrop { position: fixed; z-index: 90; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, #0b0d12 62%, transparent); backdrop-filter: blur(3px); opacity: 1; cursor: zoom-out; transition: opacity .26s ease; animation: lightbox-shade-in .26s ease; }
 @keyframes lightbox-shade-in { from { opacity: 0; } }

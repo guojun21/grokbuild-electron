@@ -12,7 +12,18 @@ export type NormalizedAcpEvent =
   | { type: 'assistant_delta'; text: string }
   | { type: 'thought_delta'; text: string }
   | { type: 'tool_start'; id: string; title: string; detail?: string; activityKind?: ActivityKind }
-  | { type: 'tool_update'; id: string; status: 'pending' | 'running' | 'completed' | 'failed'; detail?: string; title?: string; activityKind?: ActivityKind }
+  | {
+      type: 'tool_update'
+      id: string
+      status: 'pending' | 'running' | 'completed' | 'failed'
+      detail?: string
+      title?: string
+      activityKind?: ActivityKind
+      /** Unverified path the agent claims it wrote a generated image to. Main must validate before display. */
+      generatedImagePath?: string
+      /** Validated, preview-carrying image attached by main; never set by this normalizer. */
+      image?: { path: string; preview?: string }
+    }
   | { type: 'plan'; entries: Array<{ text: string; status: 'pending' | 'in_progress' | 'completed' }> }
   | { type: 'context_usage'; used: number; limit?: number | undefined }
   | { type: 'turn_usage'; usage: TurnTokenUsage }
@@ -135,6 +146,21 @@ function safeToolIdentifier(value: string): string {
   return sanitizeDisplayTitle(value, 256) || 'unknown-tool'
 }
 
+/**
+ * The grok CLI reports image_gen results as rawOutput
+ * `{ type: "ImageGen", path, filename, session_folder }` where `path` points
+ * into its own `~/.grok/sessions` store. Only the claim is extracted here;
+ * existence, boundary, and preview generation happen in main.
+ */
+function generatedImagePathFrom(rawOutput: unknown): string | undefined {
+  const output = record(rawOutput)
+  if (output.type !== 'ImageGen') return undefined
+  const path = output.path
+  return typeof path === 'string' && path.length > 0 && path.length <= 4_096
+    ? path
+    : undefined
+}
+
 export function normalizeSessionUpdate(params: unknown): NormalizedAcpEvent {
   const envelope = record(params)
   const update = record(envelope.update ?? envelope)
@@ -174,6 +200,7 @@ export function normalizeSessionUpdate(params: unknown): NormalizedAcpEvent {
       const detail = tool.rawOutput !== undefined
         ? rawToolDetailFrom(tool.rawOutput, 'output')
         : displayDetailFrom(tool.detail ?? tool.content ?? update.content)
+      const generatedImagePath = generatedImagePathFrom(tool.rawOutput)
       const rawTitle = firstString(tool.title, tool.name, update.title)
       const title = rawTitle
         ? sanitizeDisplayTitle(rawTitle, maxTitleChars) || undefined
@@ -185,7 +212,8 @@ export function normalizeSessionUpdate(params: unknown): NormalizedAcpEvent {
         status: normalizeStatus(tool.status ?? update.status),
         ...(detail ? { detail } : {}),
         ...(title ? { title } : {}),
-        ...(activityKind ? { activityKind } : {})
+        ...(activityKind ? { activityKind } : {}),
+        ...(generatedImagePath ? { generatedImagePath } : {})
       }
     }
     case 'plan': {

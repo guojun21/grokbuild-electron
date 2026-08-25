@@ -127,7 +127,8 @@ export function applyAcpEvent(session: SessionSnapshot, event: NormalizedAcpEven
           status: event.status,
           ...(event.detail ? { detail: event.detail } : {}),
           ...(event.title ? { title: event.title } : {}),
-          ...(event.activityKind ? { activityKind: event.activityKind } : {})
+          ...(event.activityKind ? { activityKind: event.activityKind } : {}),
+          ...(event.image ? { images: mergeGeneratedImages(item.images, event.image) } : {})
         }
       })
       const activityKind = event.activityKind
@@ -185,6 +186,16 @@ export function applyAcpEvent(session: SessionSnapshot, event: NormalizedAcpEven
     case 'unknown':
       return session
   }
+}
+
+type GeneratedToolImage = { path: string; preview?: string }
+
+function mergeGeneratedImages(
+  existing: readonly GeneratedToolImage[] | undefined,
+  addition: GeneratedToolImage
+): GeneratedToolImage[] {
+  const kept = (existing ?? []).filter((image) => image.path !== addition.path)
+  return [...kept, addition].slice(-4)
 }
 
 function findLastAssistantSinceUser(transcript: TranscriptItem[]): number {
@@ -497,7 +508,11 @@ function transcriptItemChars(item: TranscriptItem): number {
     case 'notice':
       return item.text.length
     case 'tool':
-      return item.title.length + (item.detail?.length ?? 0)
+      return item.title.length + (item.detail?.length ?? 0) +
+        (item.images?.reduce(
+          (total, image) => total + image.path.length + (image.preview?.length ?? 0),
+          0
+        ) ?? 0)
     case 'activity':
       return formatActivityLine(item.entries, item.hookCount).length
     case 'plan':

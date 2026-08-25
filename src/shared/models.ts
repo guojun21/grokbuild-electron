@@ -32,6 +32,8 @@ export type TranscriptItem =
       status: 'pending' | 'running' | 'completed' | 'failed'
       detail?: string
       activityKind?: ActivityKind
+      /** Main-validated images this tool call generated, with bounded previews. */
+      images?: Array<{ path: string; preview?: string }>
       createdAt: string
     }
   | {

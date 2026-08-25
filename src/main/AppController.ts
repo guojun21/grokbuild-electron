@@ -2,7 +2,8 @@ import { access, realpath, stat } from 'node:fs/promises'
 import { constants } from 'node:fs'
 import { basename } from 'node:path'
 import { EventEmitter } from 'node:events'
-import { normalizeSessionUpdate } from '../shared/acp/events'
+import { normalizeSessionUpdate, type NormalizedAcpEvent } from '../shared/acp/events'
+import { resolveGeneratedImagePath } from './grok/generatedImages'
 import { persistedStateSchema } from '../shared/schemas'
 import {
   appendSessionError,
@@ -126,6 +127,8 @@ export interface AppControllerOptions {
   agentRosterStore?: AgentRosterStoreApi
   agentCatalogService?: Pick<GrokAgentCatalogService, 'list' | 'clear'>
   memoryBroker?: Pick<MemoryBroker, 'list' | 'read' | 'remember' | 'deleteSession' | 'clear'>
+  /** Bounded preview re-encode for validated generated-image paths (needs Electron; injected so tests run without it). */
+  generatedImagePreview?: (path: string) => string | undefined
 }
 
 export const MAX_PINNED_PROJECTS = 5
@@ -2999,7 +3002,7 @@ export class AppController extends EventEmitter<{
       return
     }
     if (isReplaySessionUpdate(params)) return
-    const normalized = normalizeSessionUpdate(params)
+    const normalized = this.withValidatedGeneratedImage(normalizeSessionUpdate(params))
     this.updateSessionRecord(sessionId, (session) => {
       const next = applyAcpEvent(session, normalized)
       if (
@@ -3012,6 +3015,20 @@ export class AppController extends EventEmitter<{
       }
       return next
     })
+  }
+
+  /**
+   * Swaps the normalizer's unverified generated-image claim for a validated
+   * attachment: the path must resolve to a real image inside the grok CLI's
+   * session store before any preview is produced or the reducer sees it.
+   */
+  private withValidatedGeneratedImage(event: NormalizedAcpEvent): NormalizedAcpEvent {
+    if (event.type !== 'tool_update' || event.generatedImagePath === undefined) return event
+    const { generatedImagePath, ...rest } = event
+    const path = resolveGeneratedImagePath(generatedImagePath)
+    if (!path) return rest
+    const preview = this.options.generatedImagePreview?.(path)
+    return { ...rest, image: preview ? { path, preview } : { path } }
   }
 
   private getProject(projectId: string): ProjectSnapshot {

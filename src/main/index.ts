@@ -20,6 +20,7 @@ import { dirname, join, normalize, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { canonicalCliVersion } from './grok/cliVersion'
+import { generatedImagePreview } from './grok/generatedImagePreview'
 import { AppController } from './AppController'
 import { AppStateStore } from './persistence/AppStateStore'
 import { registerIpc } from './ipc'
@@ -127,7 +128,8 @@ if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
       ? { seedProjectPath: process.env.GROKBUILD_E2E_PROJECT_PATH }
       : {}),
     dashboardInspector: new DashboardInspector(),
-    acpFactory: (options) => new AcpWorkerClient(join(__dirname, 'acp-worker.js'), options)
+    acpFactory: (options) => new AcpWorkerClient(join(__dirname, 'acp-worker.js'), options),
+    generatedImagePreview
   })
   await controller.initialize()
   nativeTheme.themeSource = controller.snapshot().settings.appearance

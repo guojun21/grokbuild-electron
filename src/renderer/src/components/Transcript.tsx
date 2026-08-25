@@ -445,6 +445,10 @@ function QuestionInteractionCard({
   )
 }
 
+function fileNameOf(path: string): string {
+  return path.split('/').pop() || 'image'
+}
+
 function TranscriptRow({
   item,
   privacyEnabled,
@@ -513,12 +517,47 @@ function TranscriptRow({
     )
   }
   if (item.kind === 'tool') {
+    const generatedImages = privacyEnabled
+      ? []
+      : (item.images ?? []).filter((image) => image.preview)
     return (
       <section className={`tool-card tool-${item.status}`} data-testid="tool-card">
         <Terminal size={15} />
         <div>
           <strong>{item.title}</strong>
           {item.detail ? <pre>{item.detail}</pre> : null}
+          {generatedImages.length > 0 ? (
+            <div className="tool-images" data-testid="tool-images">
+              {generatedImages.map((image, index) => {
+                const name = fileNameOf(image.path)
+                return (
+                  <button
+                    type="button"
+                    className="attachment-thumb tool-image-thumb"
+                    key={`${image.path}-${index}`}
+                    title={name}
+                    aria-label={`View generated image ${name}`}
+                    onClick={(event) => onPreviewImage({
+                      src: image.preview!,
+                      name,
+                      path: image.path,
+                      origin: event.currentTarget.getBoundingClientRect()
+                    })}
+                    onContextMenu={(event) => {
+                      event.preventDefault()
+                      void window.grokbuild.showImageMenu({
+                        name,
+                        path: image.path,
+                        dataUrl: image.preview!
+                      })
+                    }}
+                  >
+                    <img src={image.preview} alt={name} draggable={false} />
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
         </div>
         <span className="tool-status">
           {item.status === 'completed' ? <Check size={14} /> : <CircleDashed size={14} />}
