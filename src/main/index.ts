@@ -21,6 +21,9 @@ import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { canonicalCliVersion } from './grok/cliVersion'
 import { generatedImagePreview } from './grok/generatedImagePreview'
+import { createAppLogger, type AppLogger } from './logging/AppLogger'
+import { startControlServer } from './control/ControlServer'
+import type { Server as NetServer } from 'node:net'
 import { AppController } from './AppController'
 import { AppStateStore } from './persistence/AppStateStore'
 import { registerIpc } from './ipc'
@@ -74,6 +77,8 @@ let quitCleanup: Promise<void> | undefined
 let quitAfterCleanup = false
 let activeCliUpdateBarrier: Promise<void> | undefined
 let statusItem: Tray | undefined
+let appLogger: AppLogger | undefined
+let controlServer: NetServer | undefined
 const presentedNotifications = new Set<Notification>()
 
 const isolatedUserData = process.env.GROKBUILD_USER_DATA_DIR
@@ -110,6 +115,19 @@ app.on('window-all-closed', () => {
 
 if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
   if (process.env.GROKBUILD_E2E_HIDDEN === '1') app.dock?.hide()
+  const logger = createAppLogger(join(app.getPath('userData'), 'logs'))
+  appLogger = logger
+  logger.log('info', 'app_start', {
+    version: app.getVersion(),
+    electron: process.versions.electron,
+    packaged: app.isPackaged
+  })
+  process.on('uncaughtException', (error) => {
+    logger.log('error', 'uncaught_exception', { message: error.message, stack: error.stack?.slice(0, 4_000) })
+  })
+  process.on('unhandledRejection', (reason) => {
+    logger.log('error', 'unhandled_rejection', { message: String(reason).slice(0, 4_000) })
+  })
   const cliPath = await locateGrokCli()
   controller = new AppController({
     appVersion: app.getVersion(),
@@ -129,7 +147,8 @@ if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
       : {}),
     dashboardInspector: new DashboardInspector(),
     acpFactory: (options) => new AcpWorkerClient(join(__dirname, 'acp-worker.js'), options),
-    generatedImagePreview
+    generatedImagePreview,
+    diagnosticsLogger: logger
   })
   await controller.initialize()
   nativeTheme.themeSource = controller.snapshot().settings.appearance
@@ -166,6 +185,32 @@ if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
   const developmentRendererUrl = validatedDevelopmentRendererUrl()
   const window = createWindow()
   mainWindow = window
+  window.webContents.on('console-message', (...args: unknown[]) => {
+    const details = (args.length === 1 ? args[0] : {
+      level: args[1],
+      message: args[2],
+      lineNumber: args[3],
+      sourceId: args[4]
+    }) as { level?: unknown; message?: unknown; lineNumber?: unknown; sourceId?: unknown }
+    const level = details.level === 'error' || details.level === 3
+      ? 'error'
+      : details.level === 'warning' || details.level === 2
+        ? 'warn'
+        : undefined
+    if (!level) return
+    logger.log(level, 'renderer_console', {
+      message: String(details.message ?? '').slice(0, 4_000),
+      source: `${String(details.sourceId ?? '')}:${String(details.lineNumber ?? '')}`
+    })
+  })
+  controlServer = startControlServer({
+    socketPath: join(app.getPath('userData'), 'control.sock'),
+    screenshotDirectory: join(app.getPath('userData'), 'screenshots'),
+    appVersion: app.getVersion(),
+    window,
+    getState: () => controller?.snapshot(),
+    logger
+  })
   const doctorOptions: GrokDoctorServiceOptions = {}
   if (process.env.GROKBUILD_E2E === '1') {
     const authPath = process.env.GROKBUILD_E2E_DOCTOR_AUTH_PATH?.trim()
@@ -405,6 +450,9 @@ function squirrelAutoUpdaterAdapter(): SquirrelAutoUpdaterAdapter {
 }
 
 app.on('will-quit', () => {
+  appLogger?.log('info', 'app_quit', {})
+  controlServer?.close()
+  controlServer = undefined
   unregisterIpc?.()
   statusItem?.destroy()
   statusItem = undefined

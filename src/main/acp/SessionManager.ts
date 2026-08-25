@@ -29,8 +29,10 @@ export interface SessionManagerEvents {
   interaction: [localSessionId: string, request: PendingInteraction]
   interactionResolved: [localSessionId: string, resolution: InteractionResolved]
   error: [localSessionId: string, error: Error]
-  exit: [localSessionId: string]
+  exit: [localSessionId: string, code: number | null]
   evicted: [localSessionId: string]
+  /** Every raw CLI/worker stderr line, for diagnostics logging — unlike `error`, nothing is classified away. */
+  stderrLine: [localSessionId: string, line: string]
 }
 
 export class SessionManager extends EventEmitter<SessionManagerEvents> {
@@ -146,6 +148,7 @@ export class SessionManager extends EventEmitter<SessionManagerEvents> {
     })
     client.on('stderr', (line) => {
       if (this.clients.get(localSessionId)?.client !== client) return
+      this.emit('stderrLine', localSessionId, line)
       const classified = classifySessionStderr(line)
       if (
         !classified ||
@@ -157,11 +160,11 @@ export class SessionManager extends EventEmitter<SessionManagerEvents> {
         this.emit('error', localSessionId, new Error(classified.message))
       })
     })
-    client.on('exit', () => {
+    client.on('exit', (code) => {
       this.forwardOrDefer(localSessionId, client, undefined, () => {
         if (this.clients.get(localSessionId)?.client !== client) return
         this.clients.delete(localSessionId)
-        this.emit('exit', localSessionId)
+        this.emit('exit', localSessionId, code)
       })
     })
     if (!deferred) this.evictIfNeeded(localSessionId)

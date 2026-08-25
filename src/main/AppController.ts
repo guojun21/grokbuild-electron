@@ -129,6 +129,10 @@ export interface AppControllerOptions {
   memoryBroker?: Pick<MemoryBroker, 'list' | 'read' | 'remember' | 'deleteSession' | 'clear'>
   /** Bounded preview re-encode for validated generated-image paths (needs Electron; injected so tests run without it). */
   generatedImagePreview?: (path: string) => string | undefined
+  /** Diagnostics sink for CLI stderr, worker exits, and surfaced session errors. */
+  diagnosticsLogger?: {
+    log(level: 'info' | 'warn' | 'error', event: string, fields?: Record<string, unknown>): void
+  }
 }
 
 export const MAX_PINNED_PROJECTS = 5
@@ -345,11 +349,16 @@ export class AppController extends EventEmitter<{
     this.sessions.on('interactionResolved', (sessionId, resolution) => {
       this.onInteractionResolved(sessionId, resolution.interactionId)
     })
+    this.sessions.on('stderrLine', (sessionId, line) => {
+      this.options.diagnosticsLogger?.log('warn', 'cli_stderr', { sessionId, line })
+    })
     this.sessions.on('error', (sessionId, error) => {
+      this.options.diagnosticsLogger?.log('error', 'session_error', { sessionId, message: error.message })
       this.workingSinceBySessionId.delete(sessionId)
       this.updateSessionRecord(sessionId, (session) => appendSessionError(session, error.message))
     })
-    this.sessions.on('exit', (sessionId) => {
+    this.sessions.on('exit', (sessionId, exitCode) => {
+      this.options.diagnosticsLogger?.log('warn', 'cli_exit', { sessionId, exitCode })
       this.workingSinceBySessionId.delete(sessionId)
       this.failActivityProjectionStart(sessionId)
       this.setActivityProjectionOffline(sessionId)

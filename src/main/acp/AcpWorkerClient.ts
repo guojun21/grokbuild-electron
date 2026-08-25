@@ -9,7 +9,6 @@ import {
   type AttachmentPromptBlock
 } from '../../shared/attachments'
 import {
-  classifySessionStderr,
   PublicAcpError,
   publicAcpErrorMessage,
   toPublicAcpError
@@ -156,9 +155,12 @@ export class AcpWorkerClient extends EventEmitter<AcpConnectionEvents> {
       }
     })
     worker.stderr?.on('data', (chunk: Buffer) => {
-      const line = chunk.toString('utf8').trim()
-      const classified = classifySessionStderr(line)
-      if (classified) this.emit('stderr', classified.message)
+      // Relay raw lines; SessionManager owns the single classification pass
+      // for the UI while the diagnostics log keeps the unedited text.
+      for (const line of chunk.toString('utf8').split('\n')) {
+        const trimmed = line.trim()
+        if (trimmed) this.emit('stderr', trimmed.slice(0, 8_192))
+      }
     })
     return worker
   }
@@ -208,10 +210,7 @@ export class AcpWorkerClient extends EventEmitter<AcpConnectionEvents> {
         this.emit('interactionResolved', message.payload)
         break
       case 'stderr':
-        {
-          const classified = classifySessionStderr(message.payload)
-          if (classified) this.emit('stderr', classified.message)
-        }
+        this.emit('stderr', message.payload.slice(0, 8_192))
         break
       case 'exit': {
         if (!this.exitEmitted) {
