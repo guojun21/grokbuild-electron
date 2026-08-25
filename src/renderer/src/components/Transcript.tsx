@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Bot, Check, ChevronRight, CircleAlert, CircleDashed, FileText, Image, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { ArrowDown, Bot, Check, ChevronRight, CircleAlert, CircleDashed, FileText, Image, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
 import type { PublicSessionSnapshot, TranscriptItem } from '../../../shared/models'
 import type {
   InteractionAnswer,
@@ -17,6 +17,33 @@ interface TranscriptProps {
 }
 
 export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
+  const scroller = useRef<HTMLDivElement>(null)
+  const [showJump, setShowJump] = useState(false)
+
+  const isNearBottom = (element: HTMLDivElement): boolean =>
+    element.scrollHeight - element.scrollTop - element.clientHeight < 80
+
+  // Opening or switching to a chat always lands on the newest content.
+  useLayoutEffect(() => {
+    const element = scroller.current
+    if (!element) return
+    // Instant, not smooth: the container's smooth scroll-behavior would turn
+    // this into an animation that the switch-time re-render interrupts midway.
+    element.scrollTo({ top: element.scrollHeight, behavior: 'instant' as ScrollBehavior })
+    setShowJump(false)
+  }, [session.id])
+
+  // Content growth can move the viewport away from the bottom without any
+  // scroll event, so the jump affordance re-evaluates on transcript changes.
+  useEffect(() => {
+    const element = scroller.current
+    if (element) setShowJump(!isNearBottom(element))
+  }, [session.transcript.length, session.status])
+
+  const jumpToBottom = (): void => {
+    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })
+  }
+
   if (session.transcript.length === 0 && !session.pendingPermission && !session.pendingInteraction) {
     return (
       <div className="empty-transcript" data-testid="empty-transcript">
@@ -33,7 +60,14 @@ export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPe
   }
 
   return (
-    <div className="transcript" data-testid="transcript" aria-live="polite">
+    <div className="transcript-shell">
+      <div
+        ref={scroller}
+        className="transcript"
+        data-testid="transcript"
+        aria-live="polite"
+        onScroll={(event) => setShowJump(!isNearBottom(event.currentTarget))}
+      >
       {session.transcript.map((item) => <TranscriptRow key={item.id} item={item} privacyEnabled={privacyEnabled} onPreviewImage={onPreviewImage} />)}
       {session.pendingPermission ? (
         <section className="permission-card" data-testid="permission-card">
@@ -63,7 +97,20 @@ export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPe
           onAnswer={onAnswerInteraction}
         />
       ) : null}
-      {session.status === 'running' ? <WorkingLine /> : null}
+        {session.status === 'running' ? <WorkingLine /> : null}
+      </div>
+      {showJump ? (
+        <button
+          type="button"
+          className="jump-to-bottom"
+          aria-label="Scroll to the latest message"
+          title="Scroll to the latest message"
+          data-testid="jump-to-bottom"
+          onClick={jumpToBottom}
+        >
+          <ArrowDown size={15} />
+        </button>
+      ) : null}
     </div>
   )
 }

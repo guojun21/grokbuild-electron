@@ -228,7 +228,11 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
 .starter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 22px; }
 .starter-grid span { padding: 9px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--canvas); color: var(--muted); font-size: 11px; line-height: 1.35; }
 
+.transcript-shell { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .transcript { flex: 1; min-height: 0; overflow-y: auto; padding: 28px max(26px, calc((100% - 820px) / 2)) 36px; scroll-behavior: smooth; }
+.jump-to-bottom { position: absolute; z-index: 30; right: 22px; bottom: 16px; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line-strong); border-radius: 99px; background: var(--surface); color: var(--muted); box-shadow: 0 5px 18px rgba(10, 14, 22, .14); cursor: pointer; animation: jump-in .16s ease; }
+.jump-to-bottom:hover { color: var(--text); }
+@keyframes jump-in { from { opacity: 0; transform: translateY(5px); } }
 .message-row { margin-bottom: 24px; }
 .message-body { min-width: 0; }
 .message-label { margin: 1px 0 5px; font-size: 11px; font-weight: 670; color: var(--muted); }
