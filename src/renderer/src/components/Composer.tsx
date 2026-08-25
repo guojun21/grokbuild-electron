@@ -18,6 +18,7 @@ interface ComposerProps {
   privacy: PrivacyDisplayResolver
   workspaceReady: boolean
   onSend: (text: string, attachmentToken?: string) => Promise<boolean>
+  onQueueMessage: (text: string) => void
   onChooseAttachments: () => Promise<AttachmentSelectionSummary | null>
   onCaptureClipboardImage: () => Promise<AttachmentSelectionSummary | null>
   onPreviewImage: (request: { src: string; name: string; path?: string | undefined; origin: { x: number; y: number; width: number; height: number } }) => void
@@ -33,6 +34,7 @@ export function Composer({
   privacy,
   workspaceReady,
   onSend,
+  onQueueMessage,
   onChooseAttachments,
   onCaptureClipboardImage,
   onPreviewImage,
@@ -158,6 +160,13 @@ export function Composer({
   async function submit(): Promise<void> {
     const prompt = text.trim()
     const pending = selectionRef.current
+    // While a turn runs, plain text queues instead of sending; it dispatches
+    // in order once the session is idle again.
+    if (turnActive && prompt && !pending && !workspaceBlocked && !submitting) {
+      onQueueMessage(prompt)
+      setText('')
+      return
+    }
     if (workspaceBlocked || (!prompt && !pending) || turnActive || submitting) return
     const submittingSessionId = session.id
     setSubmitting(true)
@@ -198,7 +207,7 @@ export function Composer({
           placeholder="Plan, build, or / for skills"
           aria-label="Message Grok"
           rows={2}
-          disabled={workspaceBlocked || turnActive || submitting}
+          disabled={workspaceBlocked || submitting}
           title={workspaceBlocked ? 'Restore the workspace before starting new work.' : undefined}
           data-testid="prompt-input"
         />

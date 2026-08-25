@@ -98,6 +98,10 @@ function SidebarResizer({
 export function App(): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<AppSnapshot>()
   const [lightbox, setLightbox] = useState<LightboxRequest>()
+  // Messages typed while a turn is running, per session, sent in order when
+  // the session goes idle. Display-only state; a restart drops the queue.
+  const [queuedBySession, setQueuedBySession] = useState<Record<string, string[]>>({})
+  const dispatchingQueueRef = useRef<Set<string>>(new Set())
   const [sidebarWidth, setSidebarWidthState] = useState(() =>
     clampSidebarWidth(Number(window.localStorage.getItem(SIDEBAR_WIDTH_KEY) ?? SIDEBAR_WIDTH_DEFAULT))
   )
@@ -314,6 +318,22 @@ export function App(): React.JSX.Element {
     return () => window.clearInterval(timer)
   }, [historyOpen])
 
+  // Dispatch the next queued message for any session that has gone idle.
+  useEffect(() => {
+    if (!snapshot) return
+    for (const session of snapshot.sessions) {
+      const queue = queuedBySession[session.id]
+      if (!queue?.length || session.status !== 'idle') continue
+      if (dispatchingQueueRef.current.has(session.id)) continue
+      const [next] = queue
+      dispatchingQueueRef.current.add(session.id)
+      removeQueuedMessage(session.id, 0)
+      void sendComposerPrompt(session.id, next!)
+        .finally(() => dispatchingQueueRef.current.delete(session.id))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snapshot, queuedBySession])
+
   if (fatalError) return <div className="fatal-error"><strong>GrokBuild could not start.</strong><span>{fatalError}</span></div>
   if (!snapshot) return <div className="loading-screen"><span className="loading-mark" /> Loading workspace…</div>
 
@@ -352,6 +372,21 @@ export function App(): React.JSX.Element {
       setOperationError(error instanceof Error ? error.message : String(error))
       return null
     }
+  }
+
+  function queueMessage(sessionId: string, text: string): void {
+    setQueuedBySession((current) => ({
+      ...current,
+      [sessionId]: [...(current[sessionId] ?? []), text]
+    }))
+  }
+
+  function removeQueuedMessage(sessionId: string, index: number): void {
+    setQueuedBySession((current) => {
+      const queue = [...(current[sessionId] ?? [])]
+      queue.splice(index, 1)
+      return { ...current, [sessionId]: queue }
+    })
   }
 
   async function sendComposerPrompt(
@@ -452,6 +487,7 @@ export function App(): React.JSX.Element {
         onCloseSession={(sessionId) => runAction(() => window.grokbuild.closeSession({ sessionId }))}
         onDuplicateSession={(sessionId) => runAction(() => window.grokbuild.duplicateSession({ sessionId }))}
         onForkSession={(sessionId) => runAction(() => window.grokbuild.forkSession({ sessionId }))}
+        onRenameSession={(sessionId, title) => runAction(() => window.grokbuild.updateSession({ sessionId, title }))}
         onSetProjectPinned={(projectId, pinned) => runAction(() => window.grokbuild.setProjectPinned({ projectId, pinned }))}
         onMoveProject={(projectId, direction) => runAction(() => window.grokbuild.moveProject({ projectId, direction }))}
         onSetSessionPinned={(sessionId, pinned) => runAction(() => window.grokbuild.setSessionPinned({ sessionId, pinned }))}
@@ -644,6 +680,8 @@ export function App(): React.JSX.Element {
                 onCopyMessage={(text) => void window.grokbuild.copyText({ text }).catch(() => undefined)}
                 onRetryMessage={(text) => void sendComposerPrompt(selectedSession.id, text)}
                 onForkSession={() => runAction(() => window.grokbuild.forkSession({ sessionId: selectedSession.id }))}
+                queuedMessages={queuedBySession[selectedSession.id] ?? []}
+                onRemoveQueued={(index) => removeQueuedMessage(selectedSession.id, index)}
                 onAnswerPermission={(requestId, optionId) => runAction(() => window.grokbuild.answerPermission({ sessionId: selectedSession.id, requestId, optionId }))}
                 onAnswerInteraction={(interactionId, answer) => runAction(() => window.grokbuild.answerInteraction({ sessionId: selectedSession.id, interactionId, answer }))}
               />
@@ -653,6 +691,7 @@ export function App(): React.JSX.Element {
                 privacy={privacy}
                 workspaceReady={selectedWorkspaceHealth === 'ready'}
                 onSend={(text, attachmentToken) => sendComposerPrompt(selectedSession.id, text, attachmentToken)}
+                onQueueMessage={(text) => queueMessage(selectedSession.id, text)}
                 onChooseAttachments={() => chooseAttachments(selectedSession.id)}
                 onCaptureClipboardImage={() => captureClipboardImage(selectedSession.id)}
                 onPreviewImage={setLightbox}

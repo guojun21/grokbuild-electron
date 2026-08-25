@@ -14,6 +14,7 @@ import {
   GitFork,
   MessageSquare,
   MoreHorizontal,
+  Pencil,
   Pin,
   PinOff,
   Plus,
@@ -51,6 +52,7 @@ interface SidebarProps {
   onCloseSession: (sessionId: string) => void
   onDuplicateSession: (sessionId: string) => void
   onForkSession: (sessionId: string) => void
+  onRenameSession: (sessionId: string, title: string) => void
   onSetProjectPinned: (projectId: string, pinned: boolean) => void
   onMoveProject: (projectId: string, direction: 'up' | 'down') => void
   onSetSessionPinned: (sessionId: string, pinned: boolean) => void
@@ -73,6 +75,7 @@ export function Sidebar({
   onCloseSession,
   onDuplicateSession,
   onForkSession,
+  onRenameSession,
   onSetProjectPinned,
   onMoveProject,
   onSetSessionPinned,
@@ -81,6 +84,24 @@ export function Sidebar({
   onOpenSettings
 }: SidebarProps): React.JSX.Element {
   const [openMenu, setOpenMenu] = useState<MenuTarget>()
+  const [menuAnchor, setMenuAnchor] = useState<{ top: number; right: number }>()
+  const [renamingSessionId, setRenamingSessionId] = useState<string>()
+  const [renameDraft, setRenameDraft] = useState('')
+
+  // Fixed positioning keeps the menu above the scrollable shelves (pinned and
+  // settled lists clip absolutely-positioned children via overflow).
+  const toggleMenu = (event: React.MouseEvent<HTMLButtonElement>, menuId: MenuTarget): void => {
+    if (openMenu === menuId) {
+      setOpenMenu(undefined)
+      return
+    }
+    const rect = event.currentTarget.getBoundingClientRect()
+    setMenuAnchor({
+      top: Math.min(rect.bottom + 2, window.innerHeight - 250),
+      right: Math.max(8, window.innerWidth - rect.right)
+    })
+    setOpenMenu(menuId)
+  }
   const [removeConfirmation, setRemoveConfirmation] = useState<string>()
   const [filter, setFilter] = useState('')
   const [showAllAgents, setShowAllAgents] = useState(false)
@@ -220,7 +241,32 @@ export function Sidebar({
         >
           <SessionIndicator status={session.activityStatus} />
           <span className="session-name">
-            <span>{sessionName}</span>
+            {renamingSessionId === session.id ? (
+              <input
+                className="session-rename-input"
+                value={renameDraft}
+                autoFocus
+                maxLength={2000}
+                data-testid="session-rename-input"
+                onClick={(event) => event.stopPropagation()}
+                onChange={(event) => setRenameDraft(event.target.value)}
+                onBlur={() => {
+                  const title = renameDraft.trim()
+                  if (title && title !== session.title) onRenameSession(session.id, title)
+                  setRenamingSessionId(undefined)
+                }}
+                onKeyDown={(event) => {
+                  event.stopPropagation()
+                  if (event.key === 'Enter') event.currentTarget.blur()
+                  if (event.key === 'Escape') {
+                    setRenameDraft(session.title)
+                    setRenamingSessionId(undefined)
+                  }
+                }}
+              />
+            ) : (
+              <span>{sessionName}</span>
+            )}
             {pinned || settled ? <small>{projectName}</small> : null}
           </span>
           <span className="session-row-meta">
@@ -237,12 +283,12 @@ export function Sidebar({
           type="button"
           aria-label={`Actions for session ${sessionName}`}
           aria-expanded={openMenu === menuId}
-          onClick={() => setOpenMenu(openMenu === menuId ? undefined : menuId)}
+          onClick={(event) => toggleMenu(event, menuId)}
         >
           <MoreHorizontal size={14} />
         </button>
         {openMenu === menuId ? (
-          <div className="row-action-menu" role="menu" aria-label={`Session actions for ${sessionName}`}>
+          <div className="row-action-menu" role="menu" aria-label={`Session actions for ${sessionName}`} style={menuAnchor ? { position: 'fixed', top: menuAnchor.top, right: menuAnchor.right } : undefined}>
             <button type="button" role="menuitem" onClick={() => closeMenuThen(() => onSetSessionPinned(session.id, !pinned))}>
               {pinned ? <PinOff size={13} /> : <Pin size={13} />}
               {pinned ? 'Unpin Session' : 'Pin Session'}
@@ -266,6 +312,16 @@ export function Sidebar({
             >
               {session.hasUnreadCompletion ? <Eye size={13} /> : <EyeOff size={13} />}
               {session.hasUnreadCompletion ? 'Mark as Read' : 'Mark as Unread'}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => closeMenuThen(() => {
+                setRenameDraft(session.title)
+                setRenamingSessionId(session.id)
+              })}
+            >
+              <Pencil size={13} /> Rename Session
             </button>
             <button
               type="button"
@@ -463,12 +519,12 @@ export function Sidebar({
                     type="button"
                     aria-label={`Actions for project ${displayProjectName}`}
                     aria-expanded={openMenu === menuId}
-                    onClick={() => setOpenMenu(openMenu === menuId ? undefined : menuId)}
+                    onClick={(event) => toggleMenu(event, menuId)}
                   >
                     <MoreHorizontal size={14} />
                   </button>
                   {openMenu === menuId ? (
-                    <div className="row-action-menu" role="menu" aria-label={`Project actions for ${displayProjectName}`}>
+                    <div className="row-action-menu" role="menu" aria-label={`Project actions for ${displayProjectName}`} style={menuAnchor ? { position: 'fixed', top: menuAnchor.top, right: menuAnchor.right } : undefined}>
                       <button
                         type="button"
                         role="menuitem"

@@ -310,6 +310,13 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
 .primary-small { border: 0; background: var(--accent); color: white; }
 .secondary-small { border: 1px solid var(--line); background: var(--surface); }
 .working-line { display: flex; align-items: center; gap: 6px; margin-left: 38px; color: var(--muted); font-size: 11px; }
+.queued-messages { display: grid; gap: 2px; margin-top: 14px; padding: 6px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+.queued-message { display: flex; align-items: center; gap: 7px; min-height: 27px; padding: 0 6px; border-radius: 6px; color: var(--muted); font-size: 11.5px; }
+.queued-message:hover { background: var(--canvas); }
+.queued-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.queued-message button { display: grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 5px; background: transparent; color: var(--faint); cursor: pointer; opacity: 0; }
+.queued-message:hover button { opacity: 1; }
+.queued-message button:hover { color: var(--danger); background: var(--surface); }
 .working-elapsed { color: var(--faint); font-variant-numeric: tabular-nums; }
 .working-line svg, .tool-running .tool-status svg { animation: spin 1.3s linear infinite; }
 .error-row { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 18px 38px; padding: 9px 11px; border-left: 2px solid var(--danger); background: var(--danger-soft); color: var(--danger); font-size: 12px; line-height: 1.45; }
@@ -868,3 +875,5 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
   .settings-navigation button { width: auto; }
   .mcp-form-grid { grid-template-columns: 1fr; }
 }
+
+.session-rename-input { width: 100%; min-width: 0; height: 22px; padding: 0 5px; border: 1px solid var(--accent); border-radius: 5px; outline: 0; background: var(--canvas); color: var(--text); font: inherit; font-size: 12px; }

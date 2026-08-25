@@ -1611,6 +1611,7 @@ export class AppController extends EventEmitter<{
     const previous = this.getSession(input.sessionId)
     this.updateSessionRecord(input.sessionId, (session) => ({
       ...session,
+      ...(input.title ? { title: input.title } : {}),
       ...(input.model ? { model: input.model } : {}),
       ...(input.mode ? { mode: input.mode } : {}),
       ...(input.reasoningEffort ? { reasoningEffort: input.reasoningEffort } : {}),

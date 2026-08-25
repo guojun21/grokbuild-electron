@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { ArrowDown, Bot, Check, ChevronRight, CircleAlert, CircleDashed, Copy, FileText, GitFork, Image, Info, ListChecks, MessageCircleQuestion, RotateCcw, Terminal } from 'lucide-react'
+import { ArrowDown, Bot, Check, ChevronRight, CircleAlert, CircleDashed, Copy, CornerDownRight, FileText, GitFork, Image, Info, ListChecks, MessageCircleQuestion, RotateCcw, Terminal, Trash2 } from 'lucide-react'
 import type { PublicSessionSnapshot, TranscriptItem } from '../../../shared/models'
 import type {
   InteractionAnswer,
@@ -15,11 +15,13 @@ interface TranscriptProps {
   onCopyMessage: (text: string) => void
   onRetryMessage: (text: string) => void
   onForkSession: () => void
+  queuedMessages: readonly string[]
+  onRemoveQueued: (index: number) => void
   onAnswerPermission: (requestId: string, optionId: string) => void
   onAnswerInteraction: (interactionId: string, answer: InteractionAnswer) => void
 }
 
-export function Transcript({ session, privacyEnabled, onPreviewImage, onCopyMessage, onRetryMessage, onForkSession, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
+export function Transcript({ session, privacyEnabled, onPreviewImage, onCopyMessage, onRetryMessage, onForkSession, queuedMessages, onRemoveQueued, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
   const scroller = useRef<HTMLDivElement>(null)
   const [showJump, setShowJump] = useState(false)
 
@@ -112,6 +114,24 @@ export function Transcript({ session, privacyEnabled, onPreviewImage, onCopyMess
         />
       ) : null}
         {session.status === 'running' ? <WorkingLine /> : null}
+        {queuedMessages.length > 0 ? (
+          <div className="queued-messages" data-testid="queued-messages" aria-label="Queued messages">
+            {queuedMessages.map((message, index) => (
+              <div className="queued-message" key={`${index}-${message.slice(0, 24)}`}>
+                <CornerDownRight size={12} aria-hidden="true" />
+                <span className="queued-text">{message}</span>
+                <button
+                  type="button"
+                  aria-label="Remove queued message"
+                  title="Remove from queue"
+                  onClick={() => onRemoveQueued(index)}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
       {showJump ? (
         <button

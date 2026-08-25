@@ -236,13 +236,14 @@ export const answerInteractionInput = z.object({
 export const updateSessionInput = z
   .object({
     sessionId: identifier,
+    title: z.string().trim().min(1).max(2_000).optional(),
     model: z.string().min(1).max(128).optional(),
     mode: z.enum(['default', 'plan', 'ask', 'yolo']).optional(),
     reasoningEffort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']).optional(),
     permissionMode: z.enum(['ask', 'auto']).optional()
   })
   .strict()
-  .refine((input) => input.model || input.mode || input.reasoningEffort || input.permissionMode, {
+  .refine((input) => input.title || input.model || input.mode || input.reasoningEffort || input.permissionMode, {
     message: 'At least one session setting is required'
   })
 
