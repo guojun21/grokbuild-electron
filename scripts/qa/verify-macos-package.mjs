@@ -14,13 +14,13 @@ if (
 ) {
   throw new Error('Package manifest contains an invalid release version')
 }
-const appPath = resolve(process.argv[2] ?? join(root, 'dist/mac-arm64/GrokBuild Electron.app'))
+const appPath = resolve(process.argv[2] ?? join(root, 'dist/mac-arm64/GrokBuild.app'))
 const dmgPath = resolve(
   process.argv[3] ?? join(root, `dist/GrokBuild-Electron-${manifest.version}-arm64.dmg`)
 )
 const releaseZipPath = process.argv[4] ? resolve(process.argv[4]) : undefined
 const checksumsPath = process.argv[5] ? resolve(process.argv[5]) : undefined
-const executablePath = join(appPath, 'Contents/MacOS/GrokBuild Electron')
+const executablePath = join(appPath, 'Contents/MacOS/GrokBuild')
 const plistPath = join(appPath, 'Contents/Info.plist')
 const updateFeedPath = join(appPath, 'Contents/Resources/update-feed.json')
 
@@ -88,11 +88,12 @@ if (identifier.stdout.trim() !== 'com.oasmet.grokbuild-electron') {
   throw new Error(`Unexpected bundle identifier: ${identifier.stdout.trim()}`)
 }
 for (const [key, expected] of [
-  // Display name is deliberately plain "GrokBuild"; the bundle file name keeps
-  // the Electron suffix so it can sit beside the upstream Swift GrokBuild.app.
+  // The product presents as plain "GrokBuild" (owner decision); artifact names
+  // keep the Electron suffix via artifactName so release assets stay distinct
+  // from the upstream Swift app.
   ['CFBundleName', 'GrokBuild'],
   ['CFBundleDisplayName', 'GrokBuild'],
-  ['CFBundleExecutable', 'GrokBuild Electron'],
+  ['CFBundleExecutable', 'GrokBuild'],
   ['CFBundleShortVersionString', manifest.version],
   ['CFBundleVersion', manifest.version]
 ]) {
@@ -153,7 +154,7 @@ if (process.env.GROKBUILD_REQUIRE_SIGNED === '1') {
     archiveName: `GrokBuild-Electron-v${manifest.version}.app.zip`,
     checksumsPath,
     sourceAppPath: appPath,
-    appName: 'GrokBuild Electron',
+    appName: 'GrokBuild',
     bundleId: 'com.oasmet.grokbuild-electron',
     version: manifest.version,
     bundleVersion: manifest.version,

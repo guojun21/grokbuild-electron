@@ -109,7 +109,7 @@ jobs:
       - name: Create exact signed app update asset
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
-            "dist/mac-arm64/GrokBuild Electron.app" \
+            "dist/mac-arm64/GrokBuild.app" \
             "dist/GrokBuild-Electron-${RELEASE_TAG}.app.zip"
           cd dist
           shasum -a 256 "GrokBuild-Electron-${RELEASE_TAG}.app.zip" "GrokBuild-Electron-${RELEASE_TAG#v}-arm64.dmg" > SHA256SUMS
@@ -119,7 +119,7 @@ jobs:
           GROKBUILD_EXPECTED_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           npm run verify:package -- \
-            "dist/mac-arm64/GrokBuild Electron.app" \
+            "dist/mac-arm64/GrokBuild.app" \
             "dist/GrokBuild-Electron-${RELEASE_TAG#v}-arm64.dmg" \
             "dist/GrokBuild-Electron-${RELEASE_TAG}.app.zip" \
             "dist/SHA256SUMS"

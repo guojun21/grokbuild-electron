@@ -182,7 +182,7 @@ if (ownsSingleInstanceLock) void app.whenReady().then(async () => {
     const confirmation = await dialog.showMessageBox(window, {
       type: 'warning',
       title: 'Install GrokBuild update?',
-      message: `Install GrokBuild Electron ${latestVersion} and restart?`,
+      message: `Install GrokBuild ${latestVersion} and restart?`,
       detail: 'Active sessions must be idle. GrokBuild will verify the signed app, stop local agent processes, save its state, and then hand replacement to macOS.',
       buttons: ['Cancel', 'Install and Restart'],
       defaultId: 1,

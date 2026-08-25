@@ -64,7 +64,7 @@
   },
   "build": {
     "appId": "com.oasmet.grokbuild-electron",
-    "productName": "GrokBuild Electron",
+    "productName": "GrokBuild",
     "asar": true,
     "afterPack": "scripts/build/after-pack.cjs",
     "npmRebuild": false,
@@ -117,12 +117,11 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "icon": "build/icon.icns",
       "extendInfo": {
-        "CFBundleName": "GrokBuild",
         "CFBundleDisplayName": "GrokBuild"
       }
     },
     "dmg": {
-      "title": "GrokBuild Electron",
+      "title": "GrokBuild",
       "artifactName": "GrokBuild-Electron-${version}-${arch}.${ext}",
       "writeUpdateInfo": false
     }

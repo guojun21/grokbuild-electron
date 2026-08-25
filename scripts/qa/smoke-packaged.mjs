@@ -8,7 +8,7 @@ import { createPackagedSmokeEnvironment } from './lib/packaged-smoke-environment
 
 const root = resolve(import.meta.dirname, '../..')
 const executable = resolve(
-  process.argv[2] ?? join(root, 'dist/mac-arm64/GrokBuild Electron.app/Contents/MacOS/GrokBuild Electron')
+  process.argv[2] ?? join(root, 'dist/mac-arm64/GrokBuild.app/Contents/MacOS/GrokBuild')
 )
 const temporary = await mkdtemp(join(tmpdir(), 'grokbuild-packaged-smoke-'))
 const workspace = join(temporary, 'workspace')
