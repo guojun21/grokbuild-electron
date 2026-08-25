@@ -131,7 +131,7 @@ test('browses CLI memory and preserves staged, native-confirmed, privacy-safe be
     await rm(temporaryStateBlocker, { recursive: true, force: true })
 
     await applyButton.click()
-    await expect(settings.getByRole('status')).toContainText('Memory enabled')
+    await expect(settings.locator('.memory-feedback')).toContainText('Memory enabled')
     await expect(applyButton).toBeDisabled()
     await expect.poll(async () => (await bootstrap(page)).settings.memoryEnabled).toBe(true)
     await expect.poll(() => memoryLaunchArguments(transcript)).toEqual([
@@ -170,7 +170,7 @@ test('browses CLI memory and preserves staged, native-confirmed, privacy-safe be
     await expect(settings.getByRole('button', { name: 'Remember', exact: true })).toBeDisabled()
     await note.fill(REMEMBERED_NOTE_CANARY)
     await settings.getByRole('button', { name: 'Remember', exact: true }).click()
-    await expect(settings.getByRole('status')).toContainText('Note saved to global memory')
+    await expect(settings.locator('.memory-feedback')).toContainText('Note saved to global memory')
     await expect(note).toHaveValue('')
     await expect.poll(async () => readFile(globalMemoryPath, 'utf8')).toContain(REMEMBERED_NOTE_CANARY)
     await settings.getByRole('button', { name: 'Open Global memory' }).click()
@@ -198,13 +198,13 @@ test('browses CLI memory and preserves staged, native-confirmed, privacy-safe be
 
     await setNativeDeleteResponse(app, 0)
     await settings.getByRole('button', { name: `Delete ${SESSION_TITLE_CANARY}` }).click()
-    await expect(settings.getByRole('status')).toContainText('Deletion cancelled')
+    await expect(settings.locator('.memory-feedback')).toContainText('Deletion cancelled')
     expect(await pathExists(sessionMemoryPath)).toBe(true)
     await expect(settings.getByRole('button', { name: `Delete ${SESSION_TITLE_CANARY}` })).toBeVisible()
 
     await setNativeDeleteResponse(app, 1)
     await settings.getByRole('button', { name: `Delete ${SESSION_TITLE_CANARY}` }).click()
-    await expect(settings.getByRole('status')).toContainText('Session memory deleted')
+    await expect(settings.locator('.memory-feedback')).toContainText('Session memory deleted')
     await expect.poll(() => pathExists(sessionMemoryPath)).toBe(false)
     await expect(settings.getByRole('button', { name: `Delete ${SESSION_TITLE_CANARY}` })).toHaveCount(0)
 
