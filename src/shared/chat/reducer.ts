@@ -180,12 +180,67 @@ export function applyAcpEvent(session: SessionSnapshot, event: NormalizedAcpEven
       return withoutPendingHooks({
         ...session,
         status: 'idle',
-        transcript: closeOpenActivities(closeStreaming(session.transcript)),
+        transcript: withUnbackedWorkNotice(
+          closeOpenActivities(closeStreaming(session.transcript)),
+          updatedAt
+        ),
         updatedAt
       }, 0)
     case 'unknown':
       return session
   }
+}
+
+export const UNBACKED_WORK_NOTICE =
+  '⚠ No tools were called this turn — work this reply narrates did not actually run.'
+
+/**
+ * Present-progressive work narration ("scanning…", "等我一下", "已扫描完毕").
+ * Past-tense claims are deliberately excluded: they can legitimately refer to
+ * tool calls from earlier turns, while narrating work *right now* in a turn
+ * that ends without a single tool call is fabrication by definition.
+ */
+const UNBACKED_WORK_CLAIM = new RegExp(
+  [
+    '正在(扫描|生成|执行|读取|检查|查|翻|搜索|创建|保存)',
+    '等我一下',
+    '稍等',
+    '让我(先)?(扫描|看看|检查|翻|查|读)',
+    '(扫描|执行|生成|检查)完毕',
+    '\\b(scanning|generating|executing|reading|checking|searching)(\\.\\.\\.|…)',
+    '\\blet me (scan|check|read|look|search)\\b',
+    '\\bone moment\\b',
+    '\\bgive me a (second|moment)\\b'
+  ].join('|'),
+  'i'
+)
+
+/**
+ * Advisory guard (see docs/ds-harness-reference.md): when a completed turn
+ * produced assistant text that narrates in-progress work but called zero
+ * tools, stamp one factual notice. Never blocks, never rewrites — it states
+ * the one hard fact the transcript proves.
+ */
+function withUnbackedWorkNotice(
+  transcript: TranscriptItem[],
+  createdAt: string
+): TranscriptItem[] {
+  let assistantText = ''
+  for (let index = transcript.length - 1; index >= 0; index -= 1) {
+    const item = transcript[index]
+    if (!item) break
+    if (item.kind === 'message' && item.role === 'user') break
+    if (item.kind === 'tool') return transcript
+    if (item.kind === 'notice' && item.text === UNBACKED_WORK_NOTICE) return transcript
+    if (item.kind === 'message' && item.role === 'assistant') {
+      assistantText = `${item.text}\n${assistantText}`
+    }
+  }
+  if (!assistantText || !UNBACKED_WORK_CLAIM.test(assistantText)) return transcript
+  return boundTranscript([
+    ...transcript,
+    { id: crypto.randomUUID(), kind: 'notice', text: UNBACKED_WORK_NOTICE, createdAt }
+  ])
 }
 
 type GeneratedToolImage = { path: string; preview?: string }

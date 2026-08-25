@@ -20,3 +20,16 @@ git clone https://github.com/xai-org/grok-build.git vendor/grok-build
   including the `agent stdio` ACP mode this app drives. Point the app's
   Grok CLI path at it; the only runtime credential it needs is
   `~/.grok/auth.json`.
+
+### Local patches (`patches/`)
+
+Applied on top of the pinned rev before building; re-apply after a fresh
+clone with `git -C vendor/grok-build apply ../patches/*.patch`.
+
+- `0001-tool-discipline-prompt.patch` — adds a hard anti-fake-narration
+  rule to the system prompt's `<tool_calling>` section (a text-only turn
+  must never claim or role-play tool work). Templates are XOR-obfuscated
+  into `prompt_encrypted.rs`; after editing `templates/prompt.md`, rerun
+  `python3 scripts/encrypt_templates.py` from
+  `crates/codegen/xai-grok-agent/` — the patch includes the regenerated
+  bytes, so applying it needs no extra step.
