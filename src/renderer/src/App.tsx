@@ -88,6 +88,7 @@ function SidebarResizer({
       aria-orientation="vertical"
       aria-label="Resize sidebar"
       title="Drag to resize · double-click to reset"
+      style={{ left: width - 3 }}
       onPointerDown={start}
       onDoubleClick={() => onResize(SIDEBAR_WIDTH_DEFAULT)}
     />
@@ -435,7 +436,7 @@ export function App(): React.JSX.Element {
     <div
       className="app-shell"
       data-testid="app-shell"
-      style={{ ['--sidebar-width' as string]: `${sidebarWidth}px` }}
+      style={{ gridTemplateColumns: `${sidebarWidth}px minmax(0, 1fr)` }}
     >
       <SidebarResizer width={sidebarWidth} onResize={setSidebarWidth} />
       {lightbox ? <ImageLightbox request={lightbox} onClose={() => setLightbox(undefined)} /> : null}

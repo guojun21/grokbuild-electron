@@ -117,6 +117,15 @@ export const copyTextInput = z.object({
   text: z.string().min(1).max(8_192)
 }).strict()
 
+export const imageMenuInput = z.object({
+  name: z.string().min(1).max(1_024),
+  path: z.string().min(1).max(4_096).optional(),
+  dataUrl: z.string()
+    .max(400_000)
+    .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/]+={0,2}$/)
+    .optional()
+}).strict()
+
 export const cancelAttachmentsInput = z.object({
   sessionId: identifier,
   token: attachmentToken

@@ -162,6 +162,14 @@ function UserMessageText({
                   path: attachment.path,
                   origin: event.currentTarget.getBoundingClientRect()
                 })}
+                onContextMenu={(event) => {
+                  event.preventDefault()
+                  void window.grokbuild.showImageMenu({
+                    name: attachment.displayName,
+                    ...(attachment.path ? { path: attachment.path } : {}),
+                    dataUrl: attachment.preview!
+                  })
+                }}
               >
                 <img src={attachment.preview} alt={attachment.displayName} draggable={false} />
               </button>

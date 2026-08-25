@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 export interface LightboxRequest {
   src: string
@@ -24,17 +24,6 @@ export function ImageLightbox({
   const backdrop = useRef<HTMLDivElement>(null)
   const frame = useRef<HTMLImageElement>(null)
   const closing = useRef(false)
-  const [copied, setCopied] = useState(false)
-  const caption = request.path ?? request.name
-
-  const copyCaption = (event: React.MouseEvent): void => {
-    event.stopPropagation()
-    void window.grokbuild.copyText({ text: caption }).then(() => {
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1300)
-    }).catch(() => undefined)
-  }
-
   const close = (): void => {
     if (closing.current) return
     closing.current = true
@@ -81,15 +70,23 @@ export function ImageLightbox({
       data-testid="image-lightbox"
       onClick={close}
     >
-      <img ref={frame} className="lightbox-image" src={request.src} alt={request.name} draggable={false} />
-      <button
-        type="button"
-        className="lightbox-caption"
-        title="Click to copy the file path"
-        onClick={copyCaption}
-      >
-        {copied ? 'Copied ✓' : caption}
-      </button>
+      <img
+        ref={frame}
+        className="lightbox-image"
+        src={request.src}
+        alt={request.name}
+        draggable={false}
+        onClick={(event) => event.stopPropagation()}
+        onContextMenu={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          void window.grokbuild.showImageMenu({
+            name: request.name,
+            ...(request.path ? { path: request.path } : {}),
+            dataUrl: request.src
+          })
+        }}
+      />
     </div>
   )
 }

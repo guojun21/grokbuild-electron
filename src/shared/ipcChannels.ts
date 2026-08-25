@@ -4,6 +4,7 @@ export const IPC = {
   chooseAttachments: 'grokbuild:choose-attachments',
   captureClipboardImage: 'grokbuild:capture-clipboard-image',
   copyText: 'grokbuild:copy-text',
+  showImageMenu: 'grokbuild:show-image-menu',
   cancelAttachments: 'grokbuild:cancel-attachments',
   chooseGrokCli: 'grokbuild:choose-grok-cli',
   createSession: 'grokbuild:create-session',

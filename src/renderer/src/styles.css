@@ -72,15 +72,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   outline-offset: 2px;
 }
 
-.app-shell { position: relative; display: grid; grid-template-columns: var(--sidebar-width, 272px) minmax(0, 1fr); height: 100%; background: var(--canvas); }
-.sidebar-resizer { position: absolute; z-index: 40; top: 0; bottom: 0; left: calc(var(--sidebar-width, 272px) - 3px); width: 7px; cursor: col-resize; -webkit-app-region: no-drag; }
+.app-shell { position: relative; display: grid; grid-template-columns: 272px minmax(0, 1fr); height: 100%; background: var(--canvas); }
+.sidebar-resizer { position: absolute; z-index: 40; top: 0; bottom: 0; width: 7px; cursor: col-resize; -webkit-app-region: no-drag; }
 .sidebar-resizer:hover, body.resizing-sidebar .sidebar-resizer { background: color-mix(in srgb, var(--accent) 28%, transparent); }
 body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-select: none; }
 .sidebar { display: flex; flex-direction: column; min-width: 0; background: var(--sidebar); border-right: 1px solid var(--line); }
 .sidebar-titlebar { height: 42px; flex: 0 0 42px; -webkit-app-region: drag; }
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; height: 40px; padding: 0 12px 0 16px; }
 .brand-lockup { display: flex; align-items: center; gap: 8px; font-weight: 650; letter-spacing: -0.01em; }
-.brand-mark { width: 23px; height: 23px; display: grid; place-items: center; color: white; background: #20242d; border-radius: 7px; }
+.brand-mark { width: 23px; height: 23px; display: grid; place-items: center; }
+.brand-mark img { width: 23px; height: 23px; border-radius: 6px; }
 .icon-button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--muted); }
 .icon-button:hover { background: var(--line); color: var(--text); }
 .add-project { margin: 4px 10px 7px; height: 30px; display: flex; align-items: center; gap: 7px; justify-content: center; border: 1px solid var(--line); background: rgba(255,255,255,.32); border-radius: 7px; font-size: 12px; }

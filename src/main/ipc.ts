@@ -3,6 +3,7 @@ import {
   clipboard,
   dialog,
   ipcMain,
+  Menu,
   nativeImage,
   nativeTheme,
   shell,
@@ -22,6 +23,7 @@ import {
   cancelTurnInput,
   chooseAttachmentsInput,
   copyTextInput,
+  imageMenuInput,
   closeSessionInput,
   createSessionInput,
   createSavedAgentInput,
@@ -241,6 +243,48 @@ export function registerIpc(
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined)
       throw publicAttachmentError(error)
     }
+  })
+  ipcMain.handle(IPC.showImageMenu, (event, raw) => {
+    validSender(event)
+    const { name, path, dataUrl } = imageMenuInput.parse(raw)
+    // Prefer the original file (full resolution); fall back to the preview.
+    const loadImage = (): Electron.NativeImage | undefined => {
+      if (path) {
+        const fromPath = nativeImage.createFromPath(path)
+        if (!fromPath.isEmpty()) return fromPath
+      }
+      if (dataUrl) {
+        const fromPreview = nativeImage.createFromDataURL(dataUrl)
+        if (!fromPreview.isEmpty()) return fromPreview
+      }
+      return undefined
+    }
+    const menu = Menu.buildFromTemplate([
+      {
+        label: 'Copy image',
+        click: () => {
+          const image = loadImage()
+          if (image) clipboard.writeImage(image)
+        }
+      },
+      {
+        label: 'Save image',
+        click: () => {
+          void (async () => {
+            const image = loadImage()
+            if (!image) return
+            const suggested = name.toLowerCase().endsWith('.png') ? name : `${name}.png`
+            const target = await dialog.showSaveDialog(window, {
+              title: 'Save image',
+              defaultPath: joinPath(app.getPath('downloads'), suggested)
+            })
+            if (target.canceled || !target.filePath) return
+            await writeFile(target.filePath, image.toPNG())
+          })()
+        }
+      }
+    ])
+    menu.popup({ window })
   })
   ipcMain.handle(IPC.copyText, (event, raw) => {
     validSender(event)

@@ -1,3 +1,4 @@
+import brandIcon from '../assets/brand-icon.png'
 import { useEffect, useState } from 'react'
 import {
   Archive,
@@ -301,7 +302,7 @@ export function Sidebar({
       <div className="sidebar-titlebar" aria-hidden="true" />
       <div className="sidebar-header">
         <div className="brand-lockup">
-          <span className="brand-mark"><GrokMark size={13} /></span>
+          <span className="brand-mark"><img src={brandIcon} alt="" draggable={false} /></span>
           <span>GrokBuild</span>
         </div>
         <button className="icon-button" type="button" onClick={onAddProject} aria-label="Add project">
@@ -608,22 +609,3 @@ function SessionIndicator({ status }: { status: PublicSessionSnapshot['activityS
   return <span className={`session-indicator status-${status}`} aria-hidden="true" />
 }
 
-/** The Grok mark (ring with a slash), matching the app icon adapted from the
- * upstream GrokBuild Desktop project. */
-function GrokMark({ size }: { size: number }): React.JSX.Element {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.4}
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <path d="M 6.9 17.1 A 7.2 7.2 0 1 1 17.1 17.1" />
-      <line x1="20.4" y1="3.6" x2="5.1" y2="18.9" />
-    </svg>
-  )
-}

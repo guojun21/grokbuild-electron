@@ -117,6 +117,7 @@ test('keeps Node isolated and exposes only the named bridge', async () => {
       'setSessionPinned',
       'setSessionSettled',
       'setSessionUnread',
+      'showImageMenu',
       'updateSavedAgent',
       'updateSession',
       'updateSettings'
