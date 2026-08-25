@@ -641,6 +641,9 @@ export function App(): React.JSX.Element {
                 session={selectedSession}
                 privacyEnabled={privacy.enabled}
                 onPreviewImage={setLightbox}
+                onCopyMessage={(text) => void window.grokbuild.copyText({ text }).catch(() => undefined)}
+                onRetryMessage={(text) => void sendComposerPrompt(selectedSession.id, text)}
+                onForkSession={() => runAction(() => window.grokbuild.forkSession({ sessionId: selectedSession.id }))}
                 onAnswerPermission={(requestId, optionId) => runAction(() => window.grokbuild.answerPermission({ sessionId: selectedSession.id, requestId, optionId }))}
                 onAnswerInteraction={(interactionId, answer) => runAction(() => window.grokbuild.answerInteraction({ sessionId: selectedSession.id, interactionId, answer }))}
               />

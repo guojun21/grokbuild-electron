@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { ArrowDown, Bot, Check, ChevronRight, CircleAlert, CircleDashed, FileText, Image, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
+import { ArrowDown, Bot, Check, ChevronRight, CircleAlert, CircleDashed, Copy, FileText, GitFork, Image, Info, ListChecks, MessageCircleQuestion, RotateCcw, Terminal } from 'lucide-react'
 import type { PublicSessionSnapshot, TranscriptItem } from '../../../shared/models'
 import type {
   InteractionAnswer,
@@ -12,11 +12,14 @@ interface TranscriptProps {
   session: PublicSessionSnapshot
   privacyEnabled: boolean
   onPreviewImage: (request: { src: string; name: string; path?: string | undefined; origin: { x: number; y: number; width: number; height: number } }) => void
+  onCopyMessage: (text: string) => void
+  onRetryMessage: (text: string) => void
+  onForkSession: () => void
   onAnswerPermission: (requestId: string, optionId: string) => void
   onAnswerInteraction: (interactionId: string, answer: InteractionAnswer) => void
 }
 
-export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
+export function Transcript({ session, privacyEnabled, onPreviewImage, onCopyMessage, onRetryMessage, onForkSession, onAnswerPermission, onAnswerInteraction }: TranscriptProps): React.JSX.Element {
   const scroller = useRef<HTMLDivElement>(null)
   const [showJump, setShowJump] = useState(false)
 
@@ -68,7 +71,18 @@ export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPe
         aria-live="polite"
         onScroll={(event) => setShowJump(!isNearBottom(event.currentTarget))}
       >
-      {session.transcript.map((item) => <TranscriptRow key={item.id} item={item} privacyEnabled={privacyEnabled} onPreviewImage={onPreviewImage} />)}
+      {session.transcript.map((item) => (
+        <TranscriptRow
+          key={item.id}
+          item={item}
+          privacyEnabled={privacyEnabled}
+          onPreviewImage={onPreviewImage}
+          onCopyMessage={onCopyMessage}
+          onRetryMessage={onRetryMessage}
+          onForkSession={onForkSession}
+          busy={session.status === 'starting' || session.status === 'running' || session.status === 'waiting'}
+        />
+      ))}
       {session.pendingPermission ? (
         <section className="permission-card" data-testid="permission-card">
           <div className="permission-icon"><CircleAlert size={17} /></div>
@@ -118,6 +132,12 @@ export function Transcript({ session, privacyEnabled, onPreviewImage, onAnswerPe
 type PreviewImageHandler = (request: { src: string; name: string; path?: string | undefined; origin: { x: number; y: number; width: number; height: number } }) => void
 
 const ATTACHMENT_NOTE = /^Attached (?:image|images|file|files): (.+)$/
+
+/** The user's own words, without the attachment note lines main appended. */
+function plainUserText(text: string): string {
+  const plain = text.split('\n').filter((line) => !ATTACHMENT_NOTE.test(line)).join('\n').trim()
+  return plain || text
+}
 
 /**
  * User text echoes back with the attachment note blocks main added to the
@@ -405,7 +425,23 @@ function QuestionInteractionCard({
   )
 }
 
-function TranscriptRow({ item, privacyEnabled, onPreviewImage }: { item: TranscriptItem; privacyEnabled: boolean; onPreviewImage: PreviewImageHandler }): React.JSX.Element {
+function TranscriptRow({
+  item,
+  privacyEnabled,
+  onPreviewImage,
+  onCopyMessage,
+  onRetryMessage,
+  onForkSession,
+  busy
+}: {
+  item: TranscriptItem
+  privacyEnabled: boolean
+  onPreviewImage: PreviewImageHandler
+  onCopyMessage: (text: string) => void
+  onRetryMessage: (text: string) => void
+  onForkSession: () => void
+  busy: boolean
+}): React.JSX.Element {
   if (item.kind === 'message') {
     return (
       <article className={`message-row role-${item.role}`} data-kind={item.kind}>
@@ -414,6 +450,36 @@ function TranscriptRow({ item, privacyEnabled, onPreviewImage }: { item: Transcr
           {item.role === 'assistant'
             ? <SafeMarkdown source={item.text} />
             : <UserMessageText text={item.text} attachments={item.attachments} privacyEnabled={privacyEnabled} onPreviewImage={onPreviewImage} />}
+          {item.role === 'user' ? (
+            <div className="message-actions" data-testid="message-actions">
+              <button
+                type="button"
+                aria-label="Copy message"
+                title="Copy message"
+                onClick={() => onCopyMessage(plainUserText(item.text))}
+              >
+                <Copy size={12} />
+              </button>
+              <button
+                type="button"
+                aria-label="Send this message again"
+                title="Send this message again"
+                disabled={busy}
+                onClick={() => onRetryMessage(plainUserText(item.text))}
+              >
+                <RotateCcw size={12} />
+              </button>
+              <button
+                type="button"
+                aria-label="Fork this chat"
+                title="Fork this chat"
+                disabled={busy}
+                onClick={onForkSession}
+              >
+                <GitFork size={12} />
+              </button>
+            </div>
+          ) : null}
         </div>
       </article>
     )

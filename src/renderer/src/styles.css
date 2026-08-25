@@ -235,6 +235,11 @@ body.resizing-sidebar { cursor: col-resize; user-select: none; -webkit-user-sele
 .jump-to-bottom:hover { color: var(--text); }
 @keyframes jump-in { from { opacity: 0; transform: translateY(5px); } }
 .message-row { margin-bottom: 24px; }
+.message-actions { display: flex; gap: 3px; margin-top: 6px; opacity: 0; transition: opacity .14s ease; }
+.message-row:hover .message-actions, .message-actions:focus-within { opacity: 1; }
+.message-actions button { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--faint); cursor: pointer; }
+.message-actions button:hover { background: var(--surface); color: var(--text); }
+.message-actions button:disabled { opacity: .4; cursor: default; }
 .message-body { min-width: 0; }
 .message-label { margin: 1px 0 5px; font-size: 11px; font-weight: 670; color: var(--muted); }
 .role-user .message-label { color: var(--accent); }
