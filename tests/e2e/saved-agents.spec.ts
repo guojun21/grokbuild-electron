@@ -95,7 +95,7 @@ test('keeps Saved Agent catalog, binding, resume, and deletion truthful end to e
     await expect(selector).toHaveValue('agent-0')
     await expect(page.locator('.session-row.selected').getByRole('img', { name: 'Saved Agent Chief' })).toBeVisible()
     await expect(selector).toBeEnabled()
-    await expect(page.getByLabel('Agent mode')).toBeEnabled()
+    await expect(page.getByLabel('Agent mode')).toHaveCount(0)
 
     await page.getByTestId('prompt-input').fill('saved agent vertical QA')
     await page.getByTestId('send-prompt').click()

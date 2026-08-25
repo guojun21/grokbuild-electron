@@ -9,7 +9,9 @@
       "key": "$PROJECT_1",
       "name": "qa-workspace",
       "path": "$WORKSPACE",
-      "sessions": ["$TAB_1"]
+      "sessions": [
+        "$TAB_1"
+      ]
     }
   ],
   "workspaceHealth": [
@@ -25,10 +27,13 @@
       "title": "New chat 1",
       "status": "idle",
       "model": "grok-4.6",
-      "mode": "default",
+      "mode": "yolo",
       "reasoningEffort": "xhigh",
       "permissionMode": "ask",
-      "context": { "used": 28000, "limit": 500000 },
+      "context": {
+        "used": 28000,
+        "limit": 500000
+      },
       "lastTurnUsage": {
         "inputTokens": 11954,
         "outputTokens": 36,
@@ -37,30 +42,66 @@
         "totalTokens": 11990
       },
       "transcript": [
-        { "kind": "message", "role": "user", "text": "Run the QA contract" },
-        { "kind": "thought", "text": "Checking the workspace contract." },
-        { "kind": "message", "role": "assistant", "text": "I inspected the project. " },
+        {
+          "kind": "message",
+          "role": "user",
+          "text": "Run the QA contract"
+        },
+        {
+          "kind": "thought",
+          "text": "Checking the workspace contract."
+        },
+        {
+          "kind": "message",
+          "role": "assistant",
+          "text": "I inspected the project. "
+        },
         {
           "kind": "activity",
-          "entries": [{ "kind": "read_file", "count": 1 }],
+          "entries": [
+            {
+              "kind": "read_file",
+              "count": 1
+            }
+          ],
           "hookCount": 2,
           "isLead": true
         },
-        { "kind": "tool", "title": "Read package.json", "status": "completed", "detail": "package.json inspected" },
+        {
+          "kind": "tool",
+          "title": "Read package.json",
+          "status": "completed",
+          "detail": "package.json inspected"
+        },
         {
           "kind": "plan",
           "entries": [
-            { "text": "Inspect the project", "status": "completed" },
-            { "text": "Report a deterministic result", "status": "in_progress" }
+            {
+              "text": "Inspect the project",
+              "status": "completed"
+            },
+            {
+              "text": "Report a deterministic result",
+              "status": "in_progress"
+            }
           ]
         },
         {
           "kind": "activity",
-          "entries": [{ "kind": "stop", "count": 1 }],
+          "entries": [
+            {
+              "kind": "stop",
+              "count": 1
+            }
+          ],
           "hookCount": 3,
           "isLead": false
         },
-        { "kind": "message", "role": "assistant", "text": "GROKBUILD_QA_OK" }
+        {
+          "kind": "message",
+          "role": "assistant",
+          "text": "GROKBUILD_QA_OK"
+        }
       ]
     }
   ],
@@ -72,26 +113,69 @@
     "maxLiveSessions": 4
   },
   "rpcTranscript": [
-    { "entry": "client->agent initialize" },
-    { "entry": "agent->client response:initialize" },
-    { "entry": "client->agent session/new" },
-    { "entry": "agent->client response:session/new" },
-    { "entry": "client->agent session/prompt" },
-    { "entry": "agent->client session/update:agent_thought_chunk" },
-    { "entry": "agent->client session/update:hook_execution" },
-    { "entry": "agent->client session/update:agent_message_chunk" },
-    { "entry": "agent->client session/update:hook_execution" },
-    { "entry": "agent->client session/update:tool_call" },
-    { "entry": "agent->client session/update:tool_call_update" },
-    { "entry": "agent->client session/update:hook_execution" },
-    { "entry": "agent->client session/update:plan" },
-    { "entry": "agent->client session/update:hook_execution" },
-    { "entry": "agent->client session/update:agent_message_chunk" },
-    { "entry": "agent->client session/update:usage_update" },
-    { "entry": "agent->client response:session/prompt" }
+    {
+      "entry": "client->agent initialize"
+    },
+    {
+      "entry": "agent->client response:initialize"
+    },
+    {
+      "entry": "client->agent session/new"
+    },
+    {
+      "entry": "agent->client response:session/new"
+    },
+    {
+      "entry": "client->agent session/set_mode"
+    },
+    {
+      "entry": "agent->client response:session/set_mode"
+    },
+    {
+      "entry": "client->agent session/prompt"
+    },
+    {
+      "entry": "agent->client session/update:agent_thought_chunk"
+    },
+    {
+      "entry": "agent->client session/update:hook_execution"
+    },
+    {
+      "entry": "agent->client session/update:agent_message_chunk"
+    },
+    {
+      "entry": "agent->client session/update:hook_execution"
+    },
+    {
+      "entry": "agent->client session/update:tool_call"
+    },
+    {
+      "entry": "agent->client session/update:tool_call_update"
+    },
+    {
+      "entry": "agent->client session/update:hook_execution"
+    },
+    {
+      "entry": "agent->client session/update:plan"
+    },
+    {
+      "entry": "agent->client session/update:hook_execution"
+    },
+    {
+      "entry": "agent->client session/update:agent_message_chunk"
+    },
+    {
+      "entry": "agent->client session/update:usage_update"
+    },
+    {
+      "entry": "agent->client response:session/prompt"
+    }
   ],
   "persistedArtifacts": [
-    { "path": "state.json", "mode": "0600" }
+    {
+      "path": "state.json",
+      "mode": "0600"
+    }
   ],
   "menuState": {}
 }

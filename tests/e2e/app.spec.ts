@@ -758,7 +758,7 @@ test('blocks unavailable workspaces without losing transcripts and recovers afte
   await expect(page.getByRole('button', { name: 'New chat' }).last()).toBeDisabled()
   await expect(page.getByTestId('prompt-input')).toBeDisabled()
   await expect(page.getByTestId('attach-files')).toBeDisabled()
-  await expect(page.getByLabel('Agent mode')).toBeDisabled()
+  await expect(page.getByLabel('Agent mode')).toHaveCount(0)
   await expect(page.getByLabel('Model')).toBeDisabled()
   await expect(page.getByLabel('Tool permissions')).toBeDisabled()
   await expect(page.getByLabel('Reasoning effort')).toBeDisabled()
