@@ -1,11 +1,10 @@
 # GrokBuild Electron
 
-> A native-feeling macOS desktop client for the Grok CLI (xAI), rebuilt with Electron, React, and TypeScript — with a deterministic ACP replay QA harness that keeps it honest against the original Swift app.
+> A native-feeling macOS desktop client for the Grok CLI (xAI), rebuilt with Electron, React, and TypeScript.
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS%20(Apple%20Silicon)-black?logo=apple)](#requirements)
 [![Electron](https://img.shields.io/badge/Electron-Vite%20%2B%20React%20%2B%20TypeScript-47848F?logo=electron&logoColor=white)](electron.vite.config.ts)
-[![QA](https://img.shields.io/badge/QA-deterministic%20ACP%20replay%20%C2%B7%20Playwright%20E2E%20%C2%B7%20visual%20baselines-brightgreen)](qa/contracts/README.md)
 
 ![GrokBuild Electron — streaming conversation with tool cards and plan approval](docs/media/conversation.png)
 
@@ -14,8 +13,7 @@ GrokBuild Electron is a Vite, React, TypeScript, and Electron migration of the c
 **Highlights**
 
 - **Multi-project, multi-session chat UI** for the official Grok CLI over ACP: streaming text and reasoning, tool cards, plan approval, permission prompts, and Ask User question cards.
-- **Parity-driven, not vibes-driven**: the Swift app and a pinned Grok CLI contract are the behavioral reference; every migrated feature carries machine-readable evidence in [`qa/contracts/parity-evidence.json`](qa/contracts/parity-evidence.json).
-- **Deterministic QA harness**: an ACP mock/replay server, 89 unit test files, Playwright Electron E2E, and pixel visual baselines — no live model turns needed to gate a PR.
+- **Sessions Dashboard, CLI history browser, Saved Agents, MCP management, and Grok memory browsing** in one window, with macOS conventions intact: hidden-inset title bar, Dock and status item behavior, native notifications.
 - **Security-first process model**: sandboxed renderer, typed `contextBridge` allowlist IPC, no Node in the renderer, one validated `utilityProcess` per session owning the Grok child process.
 
 This repository is an active parity milestone, not a replacement-ready release. The machine-readable parity manifest and release gate intentionally report remaining P0/P1 work. Read [Migration status](docs/MIGRATION_STATUS.md) before using the app for important work.
