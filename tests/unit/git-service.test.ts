@@ -26,7 +26,9 @@ afterEach(async () => {
   ))
 })
 
-describe('GitService read-only repository inspection', () => {
+// These suites spawn real git subprocesses; cold shared CI runners need far more
+// than the 5s default before the first subprocess round-trip completes.
+describe('GitService read-only repository inspection', { timeout: 30_000 }, () => {
   it('reports a slash-containing current branch and the primary worktree identity', async () => {
     const { repository } = await createRepository()
     await git(repository, ['checkout', '-b', 'feature/slash/name'])
@@ -177,7 +179,7 @@ describe('GitService read-only repository inspection', () => {
   })
 })
 
-describe('GitService process and output boundaries', () => {
+describe('GitService process and output boundaries', { timeout: 30_000 }, () => {
   it('maps runner timeout, output, and arbitrary failures to fixed public errors', async () => {
     const { repository } = await createRepository()
     const outputExecutable = await fakeGitExecutable(
