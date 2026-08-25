@@ -9,7 +9,7 @@ import {
   type IpcMainInvokeEvent
 } from 'electron'
 import { randomUUID } from 'node:crypto'
-import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { join as joinPath } from 'node:path'
 import { homedir } from 'node:os'
 import { z } from 'zod'
@@ -208,12 +208,15 @@ export function registerIpc(
     }
     const image = clipboard.readImage()
     if (image.isEmpty()) return null
-    // The pasted bitmap becomes a short-lived, owner-only temp file so it can
-    // ride the exact staging pipeline (sniffing, limits, leases) the file
-    // dialog uses. The broker holds an open handle, so the file is removed as
-    // soon as staging returns and the bytes still never touch the renderer.
-    // The random segment lives in the directory name so the chip label stays
-    // human-readable.
+    // The pasted bitmap becomes an owner-only temp file so it can ride the
+    // exact staging pipeline (sniffing, limits, leases) the file dialog uses.
+    // The file must outlive the lease: the broker's stability check folds
+    // ctime into the file identity, and an early unlink bumps ctime, so the
+    // send would fail as tampered. Cleanup instead happens here for pastes
+    // older than an hour (lease TTL is five minutes), with macOS temp
+    // reaping as the backstop. The random segment lives in the directory
+    // name so the chip label stays human-readable.
+    await sweepStalePasteDirectories()
     const temporaryDirectory = joinPath(app.getPath('temp'), `grokbuild-paste-${randomUUID()}`)
     const temporaryPath = joinPath(temporaryDirectory, 'Pasted image.png')
     try {
@@ -223,9 +226,8 @@ export function registerIpc(
         await controller.stageAttachments(sessionId, [temporaryPath])
       )
     } catch (error) {
-      throw publicAttachmentError(error)
-    } finally {
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined)
+      throw publicAttachmentError(error)
     }
   })
   ipcMain.handle(IPC.cancelAttachments, async (event, raw) => {
@@ -789,6 +791,21 @@ export function registerIpc(
     swiftImportBroker.clear()
     channels.forEach((channel) => ipcMain.removeHandler(channel))
   }
+}
+
+/** Remove pasted-image temp directories once their lease can no longer exist. */
+async function sweepStalePasteDirectories(): Promise<void> {
+  const temporaryRoot = app.getPath('temp')
+  const staleBeforeMs = Date.now() - 60 * 60_000
+  const names = await readdir(temporaryRoot).catch(() => [] as string[])
+  await Promise.all(names
+    .filter((name) => name.startsWith('grokbuild-paste-'))
+    .map(async (name) => {
+      const path = joinPath(temporaryRoot, name)
+      const info = await stat(path).catch(() => undefined)
+      if (!info || info.mtimeMs >= staleBeforeMs) return
+      await rm(path, { recursive: true, force: true }).catch(() => undefined)
+    }))
 }
 
 async function withIntegrationOperation<T>(
