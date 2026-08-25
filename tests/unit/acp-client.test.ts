@@ -33,7 +33,7 @@ describe('AcpClient with the deterministic Grok double', () => {
         { id: 'grok-4.6', name: 'Grok 4.6', contextLimit: 500_000 },
         { id: 'grok-composer-2.5-fast', name: 'Composer Fast', contextLimit: 500_000 }
       ],
-      currentModeId: 'default',
+      currentModeId: 'yolo',
       availableModes: [
         { id: 'default', name: 'Agent' },
         { id: 'plan', name: 'Plan' },
@@ -886,7 +886,8 @@ describe('AcpClient with the deterministic Grok double', () => {
       expect(requests.map((entry) => entry.frame.method)).toEqual([
         'initialize',
         'x.ai/session/fork',
-        'session/load'
+        'session/load',
+        'session/set_mode'
       ])
       expect(requests[1]?.frame.params).toEqual({
         sourceSessionId: FORK_SOURCE_ID,

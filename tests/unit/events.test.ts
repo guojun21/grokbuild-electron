@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { modeLabel } from '../../src/shared/sessionPresentation'
 import { normalizeSessionUpdate } from '../../src/shared/acp/events'
 
 describe('ACP event normalization', () => {
@@ -100,13 +101,16 @@ describe('ACP event normalization', () => {
     })).toEqual({ type: 'unknown', name: 'usage_update', payload: {} })
   })
 
-  it('normalizes authoritative current mode updates without exposing yolo copy', () => {
+  it('carries the authoritative mode id, leaving yolo copy to the label layer', () => {
     expect(normalizeSessionUpdate({
       update: { sessionUpdate: 'current_mode_update', currentModeId: 'plan' }
     })).toEqual({ type: 'mode_changed', mode: 'plan' })
+    // The id stays truthful; modeLabel renders it as "Auto accept" so no
+    // surface ever says YOLO.
     expect(normalizeSessionUpdate({
       update: { sessionUpdate: 'current_mode_update', currentModeId: 'yolo' }
-    })).toEqual({ type: 'mode_changed', mode: 'default', permissionMode: 'auto' })
+    })).toEqual({ type: 'mode_changed', mode: 'yolo', permissionMode: 'auto' })
+    expect(modeLabel('yolo')).toBe('Auto accept')
   })
 
   it('projects hook runs to a bounded kind and count without retaining payloads', () => {
