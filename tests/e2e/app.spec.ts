@@ -371,7 +371,8 @@ test('sends bounded multimodal blocks without exposing attachment capabilities o
   await startChat()
   await page.getByTestId('attach-files').click()
   const attachments = page.getByTestId('attachment-strip')
-  await expect(attachments).toContainText('pixel.png')
+  // Images render as preview thumbnails (name in the tooltip), files as chips.
+  await expect(attachments.locator('.attachment-thumb[title="pixel.png"] img')).toBeVisible()
   await expect(attachments).toContainText('notes.txt')
   await expect(attachments).not.toContainText(workspacePath)
   await electronApp!.evaluate(({ dialog }) => {
@@ -389,7 +390,7 @@ test('sends bounded multimodal blocks without exposing attachment capabilities o
     mutableDialog.showOpenDialog = async () => ({ canceled: false, filePaths: selectedPaths })
   }, [imagePath, notePath])
   await page.getByTestId('attach-files').click()
-  await expect(attachments).toContainText('pixel.png')
+  await expect(attachments.locator('.attachment-thumb[title="pixel.png"] img')).toBeVisible()
   await expect(attachments).toContainText('notes.txt')
   await page.getByTestId('prompt-input').fill('Inspect selected attachments')
   await page.getByTestId('send-prompt').click()

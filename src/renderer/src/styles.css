@@ -310,6 +310,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .attachment-chips { min-width: 0; display: flex; flex-wrap: wrap; gap: 5px; }
 .attachment-chip { min-width: 0; max-width: 190px; height: 24px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--text-secondary); font-size: 10px; }
 .attachment-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attachment-thumb { display: inline-flex; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.attachment-thumb img { display: block; width: auto; height: 52px; max-width: 120px; object-fit: cover; }
 .attachment-strip > button { flex: 0 0 auto; height: 24px; display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 10px; }
 .attachment-strip > button:hover { background: var(--line); color: var(--text); }
 .composer-controls { display: flex; align-items: center; justify-content: space-between; min-height: 37px; padding: 0 8px 7px; gap: 8px; }

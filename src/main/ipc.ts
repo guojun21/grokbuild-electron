@@ -3,6 +3,7 @@ import {
   clipboard,
   dialog,
   ipcMain,
+  nativeImage,
   nativeTheme,
   shell,
   type BrowserWindow,
@@ -10,7 +11,7 @@ import {
 } from 'electron'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises'
-import { join as joinPath } from 'node:path'
+import { basename, join as joinPath } from 'node:path'
 import { homedir } from 'node:os'
 import { z } from 'zod'
 import {
@@ -89,7 +90,10 @@ import {
   type UpdateCheckResult
 } from './updates/UpdateCoordinator'
 import { AttachmentBrokerError } from './attachments/AttachmentBroker'
-import { attachmentSelectionSummarySchema } from '../shared/attachments'
+import {
+  attachmentSelectionSummarySchema,
+  type AttachmentSelectionSummary
+} from '../shared/attachments'
 import { grokDoctorReportSchema } from '../shared/doctor'
 import { dashboardProjectStatusSchema } from '../shared/dashboard'
 import {
@@ -191,9 +195,10 @@ export function registerIpc(
     })
     if (result.canceled || result.filePaths.length === 0) return null
     try {
-      return attachmentSelectionSummarySchema.parse(
-        await controller.stageAttachments(sessionId, result.filePaths)
-      )
+      return attachmentSelectionSummarySchema.parse(withImagePreviews(
+        await controller.stageAttachments(sessionId, result.filePaths),
+        result.filePaths
+      ))
     } catch (error) {
       throw publicAttachmentError(error)
     }
@@ -222,9 +227,10 @@ export function registerIpc(
     try {
       await mkdir(temporaryDirectory, { mode: 0o700 })
       await writeFile(temporaryPath, image.toPNG(), { mode: 0o600 })
-      return attachmentSelectionSummarySchema.parse(
-        await controller.stageAttachments(sessionId, [temporaryPath])
-      )
+      return attachmentSelectionSummarySchema.parse(withImagePreviews(
+        await controller.stageAttachments(sessionId, [temporaryPath]),
+        [temporaryPath]
+      ))
     } catch (error) {
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined)
       throw publicAttachmentError(error)
@@ -790,6 +796,46 @@ export function registerIpc(
     cachedAppReleaseUrl = undefined
     swiftImportBroker.clear()
     channels.forEach((channel) => ipcMain.removeHandler(channel))
+  }
+}
+
+const PREVIEW_HEIGHT = 96
+const MAX_PREVIEW_CHARS = 200_000
+
+/**
+ * Bounded display thumbnails for staged images, generated in main from the
+ * selected paths. The renderer receives only this downscaled re-encode, never
+ * the original bytes. Matching is by display name in selection order, so a
+ * dropped duplicate simply loses its preview rather than borrowing another.
+ */
+function withImagePreviews(
+  summary: AttachmentSelectionSummary,
+  selectedPaths: readonly string[]
+): AttachmentSelectionSummary {
+  const remaining = [...selectedPaths]
+  return {
+    ...summary,
+    attachments: summary.attachments.map((attachment) => {
+      if (attachment.kind !== 'image') return attachment
+      const index = remaining.findIndex((path) => basename(path) === attachment.displayName)
+      if (index < 0) return attachment
+      const [path] = remaining.splice(index, 1)
+      try {
+        const image = nativeImage.createFromPath(path!)
+        if (image.isEmpty()) return attachment
+        const size = image.getSize()
+        const preview = (size.height > PREVIEW_HEIGHT
+          ? image.resize({ height: PREVIEW_HEIGHT })
+          : image
+        ).toDataURL()
+        if (preview.length > MAX_PREVIEW_CHARS || !preview.startsWith('data:image/')) {
+          return attachment
+        }
+        return { ...attachment, preview }
+      } catch {
+        return attachment
+      }
+    })
   }
 }
 

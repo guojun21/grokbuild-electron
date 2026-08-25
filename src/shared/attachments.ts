@@ -25,10 +25,15 @@ const MAX_ENCODED_IMAGE_CHARS = Math.ceil(ATTACHMENT_PROMPT_LIMITS.imageBytes / 
 const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 const BASE64_BODY = /^[A-Za-z0-9+/]*={0,2}$/
 
-/** Renderer-safe metadata. It intentionally contains neither paths nor image bytes. */
+/**
+ * Renderer-safe metadata. It intentionally contains neither paths nor original
+ * image bytes; `preview` is a bounded, main-generated thumbnail re-encode for
+ * display only.
+ */
 export interface AttachmentItemSummary {
   kind: AttachmentKind
   displayName: string
+  preview?: string | undefined
 }
 
 /** An opaque, session-scoped lease for a staged attachment selection. */
@@ -40,7 +45,11 @@ export interface AttachmentSelectionSummary {
 
 export const attachmentItemSummarySchema = z.object({
   kind: z.enum(['file', 'image']),
-  displayName: z.string().min(1).max(1_024).regex(/^[^\u0000-\u001f\u007f]+$/)
+  displayName: z.string().min(1).max(1_024).regex(/^[^\u0000-\u001f\u007f]+$/),
+  preview: z.string()
+    .max(200_000)
+    .regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/]+={0,2}$/)
+    .optional()
 }).strict()
 
 /** Output guard for the only attachment shape permitted to cross into renderer. */

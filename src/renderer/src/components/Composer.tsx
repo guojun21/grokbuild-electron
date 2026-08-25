@@ -204,15 +204,25 @@ export function Composer({
           <div className="attachment-strip" data-testid="attachment-strip">
             <div className="attachment-chips">
               {selection.attachments.map((attachment, index) => (
-                <span
-                  className="attachment-chip"
-                  data-attachment-kind={attachment.kind}
-                  key={`${attachment.kind}-${attachment.displayName}-${index}`}
-                  title={privacy.path(attachment.displayName)}
-                >
-                  {attachment.kind === 'image' ? <Image size={12} /> : <FileText size={12} />}
-                  <span>{privacy.path(attachment.displayName)}</span>
-                </span>
+                attachment.kind === 'image' && attachment.preview && !privacy.enabled ? (
+                  <span
+                    className="attachment-thumb"
+                    key={`${attachment.kind}-${attachment.displayName}-${index}`}
+                    title={attachment.displayName}
+                  >
+                    <img src={attachment.preview} alt={attachment.displayName} draggable={false} />
+                  </span>
+                ) : (
+                  <span
+                    className="attachment-chip"
+                    data-attachment-kind={attachment.kind}
+                    key={`${attachment.kind}-${attachment.displayName}-${index}`}
+                    title={privacy.path(attachment.displayName)}
+                  >
+                    {attachment.kind === 'image' ? <Image size={12} /> : <FileText size={12} />}
+                    <span>{privacy.path(attachment.displayName)}</span>
+                  </span>
+                )
               ))}
             </div>
             <button type="button" onClick={clearAttachments} aria-label="Clear attachments">
