@@ -153,7 +153,7 @@
     ],
     "deterministicScenarios": 2,
     "ndjsonFixtures": 1,
-    "unitTestFiles": 89,
+    "unitTestFiles": 90,
     "e2eTestFiles": 14,
     "knownDifferences": 11,
     "knownDifferenceCounts": {
@@ -993,6 +993,7 @@
       "tests/unit/ipc.test.ts",
       "tests/unit/jsonrpc.test.ts",
       "tests/unit/mac-app-identity-service.test.ts",
+      "tests/unit/macos-advisory-lock-runner.test.ts",
       "tests/unit/main-agent-ipc.test.ts",
       "tests/unit/main-dashboard-ipc.test.ts",
       "tests/unit/main-memory-ipc.test.ts",
