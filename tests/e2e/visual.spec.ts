@@ -1,7 +1,28 @@
 import { _electron as electron, expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { chmod, mkdtemp, mkdir, rm, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+
+// The canonical baselines are honest only at their recorded viewport. A display that
+// cannot host that viewport (for example GitHub-hosted macOS runners clamp windows to
+// the runner's small work area) must report blocked, never a false red or green.
+async function skipUnlessViewport(page: Page, width: number, height: number): Promise<void> {
+  const matched = await page
+    .waitForFunction(
+      (size) => window.innerWidth === size.width && window.innerHeight === size.height,
+      { width, height },
+      { timeout: 5000 }
+    )
+    .then(() => true)
+    .catch(() => false)
+  if (matched) return
+  const size = await page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }))
+  test.skip(
+    true,
+    `Viewport is ${size.width}x${size.height}, not the canonical ${width}x${height}; run on the pinned macOS visual runner`
+  )
+}
 
 test('matches the canonical 1200x800 conversation surface', async () => {
   test.skip(process.env.GROKBUILD_VISUAL !== '1', 'Run with GROKBUILD_VISUAL=1 on the pinned macOS visual runner')
@@ -23,6 +44,7 @@ test('matches the canonical 1200x800 conversation surface', async () => {
   })
   try {
     const page = await app.firstWindow()
+    await skipUnlessViewport(page, 1200, 800)
     await page.getByRole('button', { name: 'New chat' }).last().click()
     await page.getByTestId('prompt-input').fill('Run the QA contract')
     await page.getByTestId('send-prompt').click()
@@ -94,6 +116,7 @@ test('matches the canonical 1200x800 Saved Agents settings surface', async () =>
   })
   try {
     const page = await app.firstWindow()
+    await skipUnlessViewport(page, 1200, 800)
     await page.getByRole('button', { name: 'Settings' }).click()
     await page.getByRole('button', { name: 'Agents', exact: true }).click()
     const settings = page.getByRole('dialog', { name: 'Settings' })
@@ -134,6 +157,7 @@ test('matches the private reduced-motion core at 1100x720 in light and dark', as
     await app.evaluate(({ BrowserWindow }) => {
       BrowserWindow.getAllWindows()[0]?.setSize(1100, 720)
     })
+    await skipUnlessViewport(page, 1100, 720)
     await page.getByRole('button', { name: 'New chat' }).last().click()
     await page.evaluate(() => (
       globalThis as unknown as {
@@ -251,6 +275,7 @@ test('matches the canonical 1200x800 Memory settings surfaces', async () => {
     await app.evaluate(({ BrowserWindow }) => {
       BrowserWindow.getAllWindows()[0]?.setSize(1200, 800)
     })
+    await skipUnlessViewport(page, 1200, 800)
     await page.getByRole('button', { name: 'Settings' }).click()
     const settings = page.getByRole('dialog', { name: 'Settings' })
     await settings.getByRole('button', { name: 'Memory', exact: true }).click()
