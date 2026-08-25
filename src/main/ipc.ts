@@ -98,6 +98,8 @@ import {
   publicMemoryFileSummariesSchema
 } from '../shared/memory'
 import { GrokDoctorService } from './grok/GrokDoctorService'
+import { GrokAccountService } from './grok/GrokAccountService'
+import { grokAccountReportSchema } from '../shared/account'
 import { publicAcpErrorMessage } from './acp/PublicSessionError'
 import { WorkspaceUnavailableError } from './workspaces/WorkspaceHealthService'
 import {
@@ -109,6 +111,7 @@ export interface IpcIntegrationOptions {
   updateFeedUrl?: string | undefined
   swiftImportBroker?: SwiftStateImportBroker | undefined
   doctorService?: GrokDoctorService | undefined
+  accountService?: Pick<GrokAccountService, 'inspect'> | undefined
   openExternal?: ((url: string) => Promise<void>) | undefined
   readCliVersion?: ((cliPath: string) => Promise<string | undefined>) | undefined
   projectOpenService?: Pick<ProjectOpenService, 'listTargets' | 'openProject'> | undefined
@@ -138,6 +141,7 @@ export function registerIpc(
 ): () => void {
   const swiftImportBroker = integration.swiftImportBroker ?? new SwiftStateImportBroker()
   const doctorService = integration.doctorService ?? new GrokDoctorService()
+  const accountService = integration.accountService ?? new GrokAccountService()
   const updateFeedUrl = integration.updateFeedUrl?.trim() || undefined
   const openExternal = integration.openExternal ?? ((url: string) => shell.openExternal(url))
   const projectOpenService = integration.projectOpenService ?? new ProjectOpenService()
@@ -635,6 +639,15 @@ export function registerIpc(
       })
     } catch {
       throw new Error('Could not check Grok status.')
+    }
+  })
+  ipcMain.handle(IPC.checkAccount, async (event, ...rawArguments) => {
+    validSender(event)
+    noArgumentsInput.parse(rawArguments)
+    try {
+      return grokAccountReportSchema.parse(await accountService.inspect())
+    } catch {
+      throw new Error('Could not check account status.')
     }
   })
   ipcMain.handle(IPC.checkUpdates, async (event, ...rawArguments) => {

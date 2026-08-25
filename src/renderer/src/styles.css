@@ -226,10 +226,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .starter-grid span { padding: 9px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--canvas); color: var(--muted); font-size: 11px; line-height: 1.35; }
 
 .transcript { flex: 1; min-height: 0; overflow-y: auto; padding: 28px max(26px, calc((100% - 820px) / 2)) 36px; scroll-behavior: smooth; }
-.message-row { display: grid; grid-template-columns: 28px 1fr; gap: 10px; margin-bottom: 24px; }
-.message-avatar { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--canvas); }
-.role-user .message-avatar { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.message-row { margin-bottom: 24px; }
+.message-body { min-width: 0; }
 .message-label { margin: 1px 0 5px; font-size: 11px; font-weight: 670; color: var(--muted); }
+.role-user .message-label { color: var(--accent); }
 .message-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13.5px; line-height: 1.62; }
 .safe-markdown { min-width: 0; overflow-wrap: anywhere; font-size: 13.5px; line-height: 1.62; }
 .safe-markdown > :first-child { margin-top: 0; }
@@ -543,6 +543,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .doctor-remediation span, .doctor-loading, .doctor-error { margin: 0; color: var(--muted); font-size: 9.5px; line-height: 1.4; }
 .doctor-remediation code { color: var(--text); font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
 .doctor-error { color: var(--danger); }
+.account-body { display: grid; gap: 11px; }
+.account-identity { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--muted); }
+.account-identity > span:first-of-type { min-width: 0; flex: 1; display: grid; gap: 1px; }
+.account-identity strong { overflow: hidden; color: var(--text); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
+.account-identity small { color: var(--muted); font-size: 9.5px; }
+.account-tier { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 99px; font-size: 10px; font-weight: 650; }
+.account-tier.paid { color: var(--success); background: color-mix(in srgb, var(--success) 12%, var(--surface)); }
+.account-tier.free { color: var(--muted); background: var(--surface); border: 1px solid var(--line); }
+.account-usage { display: grid; gap: 8px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.account-usage-row { display: flex; gap: 18px; }
+.account-usage-row span { display: grid; gap: 1px; }
+.account-usage-row strong { color: var(--text); font-size: 14px; font-variant-numeric: tabular-nums; }
+.account-usage-row small { color: var(--muted); font-size: 9.5px; line-height: 1.35; }
+.account-meter { height: 5px; overflow: hidden; border-radius: 99px; background: var(--line); }
+.account-meter-fill { height: 100%; border-radius: 99px; background: var(--accent); }
+.account-history { display: flex; gap: 14px; padding-top: 2px; }
+.account-history span { display: grid; gap: 1px; }
+.account-history small { color: var(--faint); font-size: 9px; }
+.account-history strong { color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.account-usage-empty, .account-footnote { margin: 0; color: var(--muted); font-size: 9.5px; line-height: 1.4; }
 .settings-mcp-section { height: 100%; min-height: 0; overflow: hidden; }
 .settings-tool-section { height: 100%; min-height: 0; overflow-y: auto; }
 .settings-agents-section { height: 100%; min-height: 0; overflow: hidden; }

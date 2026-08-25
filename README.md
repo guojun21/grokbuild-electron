@@ -13,7 +13,7 @@ GrokBuild Electron is a Vite, React, TypeScript, and Electron migration of the c
 **Highlights**
 
 - **Multi-project, multi-session chat UI** for the official Grok CLI over ACP: streaming text and reasoning, tool cards, plan approval, permission prompts, and Ask User question cards.
-- **Sessions Dashboard, CLI history browser, Saved Agents, MCP management, and Grok memory browsing** in one window, with macOS conventions intact: hidden-inset title bar, Dock and status item behavior, native notifications.
+- **Sessions Dashboard, CLI history browser, Saved Agents, MCP management, Grok memory browsing, and an account plan/usage panel** in one window, with macOS conventions intact: hidden-inset title bar, Dock and status item behavior, native notifications.
 - **Security-first process model**: sandboxed renderer, typed `contextBridge` allowlist IPC, no Node in the renderer, one validated `utilityProcess` per session owning the Grok child process.
 
 This repository is an active parity milestone, not a replacement-ready release. The machine-readable parity manifest and release gate intentionally report remaining P0/P1 work. Read [Migration status](docs/MIGRATION_STATUS.md) before using the app for important work.
@@ -36,7 +36,8 @@ This repository is an active parity milestone, not a replacement-ready release. 
 - CLI-owned MCP list/add/remove/enable/disable and explicit Doctor checks with redacted results.
 - Read-only Grok Doctor checks for CLI, version, cached sign-in presence, and config presence, plus an explicit session Retry action.
 - Explicit Swift plist preview, non-destructive merge, commit, and cancel. The renderer receives counts and an opaque token, not imported transcript content or source paths.
-- App/CLI update discovery and a cached release-page action. The packaged-App path keeps its one-shot candidate in main, asks for native confirmation, stages by digest and size, revalidates current/candidate signing identity, pauses idle ACP work, and delegates replacement/restart to Electron's Squirrel.Mac updater. The zero-argument CLI path shares those gates, canonicalizes strict semantic versions including prereleases, confirms the exact target, runs only `grok update --version <target>`, and requires the local `grok --version` to equal that target before ACP may reconnect. Its feed refresh is display-only; an uncertain on-disk result instead retains the gates and takes a guarded quit path.
+- An Account settings panel showing the signed-in grok.com account, its subscription tier, Grok Code access, and billing-cycle usage, read through a main-owned service; the CLI's bearer credential never reaches the renderer.
+- App/CLI update install engines remain main-only behind gated IPC (native confirmation, digest staging, signing checks, ACP quiescence, Squirrel.Mac restart); the Updates settings page itself was removed by design, so nothing in the UI triggers them today.
 - macOS close-to-hide, Dock/second-instance restore, basic status item, Settings shortcut, content-free notifications, and bounded quit cleanup.
 
 The Tasks & Workflows milestone is observational, not a second task engine. Electron does not create,

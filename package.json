@@ -1,6 +1,6 @@
 {
   "name": "grokbuild-electron",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A parity-driven Vite, React, TypeScript and Electron client for the Grok Build CLI",
   "author": "oasmet",
   "license": "Apache-2.0",
@@ -117,8 +117,8 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "icon": "build/icon.icns",
       "extendInfo": {
-        "LSMinimumSystemVersion": "26.0",
-        "NSHighResolutionCapable": true
+        "CFBundleName": "GrokBuild",
+        "CFBundleDisplayName": "GrokBuild"
       }
     },
     "dmg": {

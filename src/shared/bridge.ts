@@ -47,6 +47,7 @@ import type {
 } from './ipc'
 import type { AttachmentSelectionSummary } from './attachments'
 import type { GrokDoctorReport } from './doctor'
+import type { GrokAccountReport } from './account'
 import type { DashboardProjectStatus } from './dashboard'
 import type {
   PublicSessionHistoryRecord,
@@ -123,6 +124,7 @@ export interface GrokBuildBridge {
   disableMcp: (input: DisableMcpInput) => Promise<McpMutationResult>
   doctorMcp: (input: DoctorMcpInput) => Promise<McpDoctorResult>
   checkDoctor: () => Promise<GrokDoctorReport>
+  checkAccount: () => Promise<GrokAccountReport>
   checkUpdates: () => Promise<UpdateOverview>
   installAppUpdate: () => Promise<AppUpdateInstallResult>
   installCliUpdate: () => Promise<CliUpdateInstallResult>

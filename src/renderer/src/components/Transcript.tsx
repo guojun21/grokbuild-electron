@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bot, Check, ChevronRight, CircleAlert, CircleDashed, Info, ListChecks, MessageCircleQuestion, Terminal, User } from 'lucide-react'
+import { Bot, Check, ChevronRight, CircleAlert, CircleDashed, Info, ListChecks, MessageCircleQuestion, Terminal } from 'lucide-react'
 import type { PublicSessionSnapshot, TranscriptItem } from '../../../shared/models'
 import type {
   InteractionAnswer,
@@ -258,7 +258,6 @@ function TranscriptRow({ item }: { item: TranscriptItem }): React.JSX.Element {
   if (item.kind === 'message') {
     return (
       <article className={`message-row role-${item.role}`} data-kind={item.kind}>
-        <div className="message-avatar">{item.role === 'user' ? <User size={14} /> : <Bot size={15} />}</div>
         <div className="message-body">
           <div className="message-label">{item.role === 'user' ? 'You' : 'Grok'}</div>
           {item.role === 'assistant'

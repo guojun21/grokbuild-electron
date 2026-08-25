@@ -482,7 +482,6 @@
         "src/main/index.ts",
         "src/main/ipc.ts",
         "src/preload/index.ts",
-        "src/renderer/src/components/UpdateSettings.tsx",
         "src/shared/bridge.ts",
         "src/shared/ipcChannels.ts",
         "src/shared/updates.ts",
@@ -506,8 +505,6 @@
         "tests/unit/main-update-install-ipc.test.ts",
         "tests/unit/mock-grok-update.test.ts",
         "tests/unit/release-app-zip-verifier.test.ts",
-        "tests/e2e/app-update.spec.ts",
-        "tests/e2e/cli-update-lifecycle.spec.ts",
         "tests/e2e/app.spec.ts"
       ],
       "artifactPaths": [],

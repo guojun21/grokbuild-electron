@@ -53,6 +53,7 @@ const bridge: GrokBuildBridge = {
   disableMcp: (input) => ipcRenderer.invoke(IPC.disableMcp, input),
   doctorMcp: (input) => ipcRenderer.invoke(IPC.doctorMcp, input),
   checkDoctor: () => ipcRenderer.invoke(IPC.checkDoctor),
+  checkAccount: () => ipcRenderer.invoke(IPC.checkAccount),
   checkUpdates: () => ipcRenderer.invoke(IPC.checkUpdates),
   installAppUpdate: () => ipcRenderer.invoke(IPC.installAppUpdate),
   installCliUpdate: () => ipcRenderer.invoke(IPC.installCliUpdate),

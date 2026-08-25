@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "application": {
     "name": "grokbuild-electron",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "reference": {
     "repository": "https://github.com/rimusz/grok-build-desktop.git",
@@ -154,7 +154,7 @@
     "deterministicScenarios": 2,
     "ndjsonFixtures": 1,
     "unitTestFiles": 90,
-    "e2eTestFiles": 14,
+    "e2eTestFiles": 12,
     "knownDifferences": 11,
     "knownDifferenceCounts": {
       "pending": 11,
@@ -642,7 +642,6 @@
         "src/main/index.ts",
         "src/main/ipc.ts",
         "src/preload/index.ts",
-        "src/renderer/src/components/UpdateSettings.tsx",
         "src/shared/bridge.ts",
         "src/shared/ipcChannels.ts",
         "src/shared/updates.ts",
@@ -666,8 +665,6 @@
         "tests/unit/main-update-install-ipc.test.ts",
         "tests/unit/mock-grok-update.test.ts",
         "tests/unit/release-app-zip-verifier.test.ts",
-        "tests/e2e/app-update.spec.ts",
-        "tests/e2e/cli-update-lifecycle.spec.ts",
         "tests/e2e/app.spec.ts"
       ],
       "artifactPaths": [],
@@ -1048,10 +1045,8 @@
       "tests/unit/workspace-health-service.test.ts"
     ],
     "e2e": [
-      "tests/e2e/app-update.spec.ts",
       "tests/e2e/app.spec.ts",
       "tests/e2e/capabilities.spec.ts",
-      "tests/e2e/cli-update-lifecycle.spec.ts",
       "tests/e2e/dashboard-project-isolation.spec.ts",
       "tests/e2e/doctor-retry.spec.ts",
       "tests/e2e/macos-shell.spec.ts",

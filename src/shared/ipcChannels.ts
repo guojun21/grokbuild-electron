@@ -48,6 +48,7 @@ export const IPC = {
   disableMcp: 'grokbuild:mcp-disable',
   doctorMcp: 'grokbuild:mcp-doctor',
   checkDoctor: 'grokbuild:check-doctor',
+  checkAccount: 'grokbuild:check-account',
   checkUpdates: 'grokbuild:check-updates',
   installAppUpdate: 'grokbuild:install-app-update',
   installCliUpdate: 'grokbuild:install-cli-update',

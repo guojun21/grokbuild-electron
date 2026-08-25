@@ -88,7 +88,10 @@ if (identifier.stdout.trim() !== 'com.oasmet.grokbuild-electron') {
   throw new Error(`Unexpected bundle identifier: ${identifier.stdout.trim()}`)
 }
 for (const [key, expected] of [
-  ['CFBundleName', 'GrokBuild Electron'],
+  // Display name is deliberately plain "GrokBuild"; the bundle file name keeps
+  // the Electron suffix so it can sit beside the upstream Swift GrokBuild.app.
+  ['CFBundleName', 'GrokBuild'],
+  ['CFBundleDisplayName', 'GrokBuild'],
   ['CFBundleExecutable', 'GrokBuild Electron'],
   ['CFBundleShortVersionString', manifest.version],
   ['CFBundleVersion', manifest.version]

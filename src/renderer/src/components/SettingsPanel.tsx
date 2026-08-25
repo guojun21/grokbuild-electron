@@ -1,4 +1,4 @@
-import { Check, Database, Import as ImportIcon, RefreshCw, Server, SlidersHorizontal, UsersRound, X } from 'lucide-react'
+import { Check, CircleUserRound, Database, Import as ImportIcon, Server, SlidersHorizontal, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import type {
   AppSettings,
@@ -6,10 +6,10 @@ import type {
   PublicSessionSnapshot
 } from '../../../shared/models'
 import type { PrivacyDisplayResolver } from '../../../shared/privacy'
+import { AccountSettings } from './AccountSettings'
 import { AgentsSettings } from './AgentsSettings'
 import { McpSettings } from './McpSettings'
 import { SwiftImportSettings } from './SwiftImportSettings'
-import { UpdateSettings } from './UpdateSettings'
 import { GrokDoctorSettings } from './GrokDoctorSettings'
 import { ModalSurface } from './ModalSurface'
 import { MemorySettings } from './MemorySettings'
@@ -43,7 +43,7 @@ export function SettingsPanel({
   onSave,
   onChooseCli
 }: SettingsPanelProps): React.JSX.Element {
-  const [section, setSection] = useState<'application' | 'memory' | 'agents' | 'mcp' | 'updates' | 'import'>('application')
+  const [section, setSection] = useState<'application' | 'account' | 'memory' | 'agents' | 'mcp' | 'import'>('application')
   return (
     <ModalSurface className="settings-dialog" labelledBy="settings-title" onClose={onClose}>
       <section className="settings-panel">
@@ -59,6 +59,9 @@ export function SettingsPanel({
             <button type="button" className={section === 'application' ? 'selected' : undefined} onClick={() => setSection('application')} aria-current={section === 'application' ? 'page' : undefined}>
               <SlidersHorizontal size={15} /> Application
             </button>
+            <button type="button" className={section === 'account' ? 'selected' : undefined} onClick={() => setSection('account')} aria-current={section === 'account' ? 'page' : undefined}>
+              <CircleUserRound size={15} /> Account
+            </button>
             <button type="button" className={section === 'agents' ? 'selected' : undefined} onClick={() => setSection('agents')} aria-current={section === 'agents' ? 'page' : undefined}>
               <UsersRound size={15} /> Agents
             </button>
@@ -67,9 +70,6 @@ export function SettingsPanel({
             </button>
             <button type="button" className={section === 'mcp' ? 'selected' : undefined} onClick={() => setSection('mcp')} aria-current={section === 'mcp' ? 'page' : undefined}>
               <Server size={15} /> MCP Servers
-            </button>
-            <button type="button" className={section === 'updates' ? 'selected' : undefined} onClick={() => setSection('updates')} aria-current={section === 'updates' ? 'page' : undefined}>
-              <RefreshCw size={15} /> Updates
             </button>
             <button type="button" className={section === 'import' ? 'selected' : undefined} onClick={() => setSection('import')} aria-current={section === 'import' ? 'page' : undefined}>
               <ImportIcon size={15} /> Import
@@ -122,6 +122,9 @@ export function SettingsPanel({
                 </select>
               </label>
             </section>
+            <section className="settings-content" hidden={section !== 'account'} aria-label="Account settings">
+              <AccountSettings active={section === 'account'} privacy={privacy} onCheck={window.grokbuild.checkAccount} />
+            </section>
             <section className="settings-memory-section" hidden={section !== 'memory'} aria-label="Memory settings">
               <MemorySettings
                 active={section === 'memory'}
@@ -152,14 +155,6 @@ export function SettingsPanel({
                 cliAvailable={cliAvailable}
                 {...(selectedProjectId ? { projectId: selectedProjectId } : {})}
                 {...(selectedProjectName ? { projectName: selectedProjectName } : {})}
-              />
-            </section>
-            <section className="settings-tool-section" hidden={section !== 'updates'} aria-label="Update settings">
-              <UpdateSettings
-                onCheck={() => window.grokbuild.checkUpdates()}
-                onInstallAppUpdate={() => window.grokbuild.installAppUpdate()}
-                onInstallCliUpdate={() => window.grokbuild.installCliUpdate()}
-                onOpenAppRelease={() => window.grokbuild.openAppRelease()}
               />
             </section>
             <section className="settings-tool-section" hidden={section !== 'import'} aria-label="Swift state import">
