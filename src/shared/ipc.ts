@@ -117,6 +117,10 @@ export const copyTextInput = z.object({
   text: z.string().min(1).max(8_192)
 }).strict()
 
+export const copySessionReferenceInput = z.object({
+  sessionId: identifier
+}).strict()
+
 export const imageMenuInput = z.object({
   name: z.string().min(1).max(1_024),
   path: z.string().min(1).max(4_096).optional(),

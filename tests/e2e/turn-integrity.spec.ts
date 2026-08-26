@@ -91,6 +91,26 @@ test('renders a generated image in its tool card and opens it in the lightbox', 
   await expect(lightbox).toBeHidden()
 })
 
+test('copies the Grok session id and title from the row context menu', async () => {
+  await sendInFreshChat('answer without narration please')
+  await expect(page.getByText('A tuple is an ordered, fixed-length sequence.')).toBeVisible()
+
+  const row = page.locator('.session-row.selected')
+  const title = (await row.locator('.session-name span').first().innerText()).trim()
+  const appSessionId = ((await row.getAttribute('data-testid')) ?? '').replace(/^session-/, '')
+
+  await row.click({ button: 'right' })
+  await page.getByTestId('copy-session-reference').click()
+
+  const copied = await application!.evaluate(({ clipboard }) => clipboard.readText())
+  expect(copied).toMatch(/^grok session id: "[0-9a-f-]{36}" ; name: ".+"$/)
+  expect(copied).toContain(`name: "${title}"`)
+  // The id is the CLI's own session id — the directory holding this chat's
+  // jsonl logs — never the app-side session id.
+  expect(appSessionId).not.toHaveLength(0)
+  expect(copied).not.toContain(appSessionId)
+})
+
 test('refuses a generated image whose path escapes the trusted root', async () => {
   await sendInFreshChat('generate an escaped image please')
 

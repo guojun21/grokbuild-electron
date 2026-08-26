@@ -22,6 +22,7 @@ import {
   cancelAttachmentsInput,
   cancelTurnInput,
   chooseAttachmentsInput,
+  copySessionReferenceInput,
   copyTextInput,
   imageMenuInput,
   closeSessionInput,
@@ -290,6 +291,11 @@ export function registerIpc(
     validSender(event)
     const { text } = copyTextInput.parse(raw)
     clipboard.writeText(text)
+  })
+  ipcMain.handle(IPC.copySessionReference, (event, raw) => {
+    validSender(event)
+    const { sessionId } = copySessionReferenceInput.parse(raw)
+    clipboard.writeText(controller.sessionReference(sessionId))
   })
   ipcMain.handle(IPC.cancelAttachments, async (event, raw) => {
     validSender(event)

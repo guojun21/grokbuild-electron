@@ -52,10 +52,10 @@ test('reorders projects within pin groups, persists the order, and opens only al
 
     await openProjectMenu(page, 'Pinned Two')
     await expect(page.getByRole('menuitem', { name: 'Move Up' })).toBeDisabled()
-    await page.getByRole('button', { name: 'Actions for project Pinned Two' }).click()
+    await page.getByRole('button', { name: 'Open Pinned Two' }).click({ button: 'right' })
     await openProjectMenu(page, 'Regular Two')
     await expect(page.getByRole('menuitem', { name: 'Move Up' })).toBeDisabled()
-    await page.getByRole('button', { name: 'Actions for project Regular Two' }).click()
+    await page.getByRole('button', { name: 'Open Regular Two' }).click({ button: 'right' })
 
     const beforeRestart = await bootstrap(page)
     expect(beforeRestart.pinnedProjectIds).toEqual(['p2', 'p1'])
@@ -127,7 +127,7 @@ async function launch(
 }
 
 async function openProjectMenu(page: Page, projectName: string): Promise<void> {
-  await page.getByRole('button', { name: `Actions for project ${projectName}` }).click()
+  await page.getByRole('button', { name: `Open ${projectName}` }).click({ button: 'right' })
   await expect(page.getByRole('menu', { name: `Project actions for ${projectName}` })).toBeVisible()
 }
 

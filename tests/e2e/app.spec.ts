@@ -76,6 +76,7 @@ test('keeps Node isolated and exposes only the named bridge', async () => {
       'chooseProject',
       'closeSession',
       'commitSwiftImport',
+      'copySessionReference',
       'copyText',
       'createSavedAgent',
       'createSession',
@@ -446,7 +447,7 @@ test('persists pin order and keeps project/session lifecycle worker-scoped', asy
   await expect(page.getByText('GROKBUILD_QA_OK')).toBeVisible()
   await expect.poll(acpWorkerCount).toBe(1)
 
-  await page.getByRole('button', { name: 'Actions for session New chat 1', exact: true }).click()
+  await page.getByRole('button', { name: 'Open New chat 1', exact: true }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Duplicate Session' }).click()
   await expect(page.locator('.topbar-title')).toContainText('New chat 1 (copy)')
   await expect(page.getByTestId('empty-transcript')).toBeVisible()
@@ -456,7 +457,7 @@ test('persists pin order and keeps project/session lifecycle worker-scoped', asy
   await expect(page.getByText('GROKBUILD_QA_OK')).toHaveCount(1)
   await expect.poll(acpWorkerCount).toBe(2)
 
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Pin Session' }).click()
   await expect(page.getByRole('region', { name: 'Pinned sessions' })).toContainText('New chat 1 (copy)')
   let current = await page.evaluate(() =>
@@ -465,7 +466,7 @@ test('persists pin order and keeps project/session lifecycle worker-scoped', asy
   )
   expect(current.pinnedSessionIds).toEqual([current.selectedSessionId])
 
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Close Session' }).click()
   await expect(page.locator('.topbar-title')).toContainText('New chat 1')
   await expect.poll(acpWorkerCount).toBe(1)
@@ -476,7 +477,7 @@ test('persists pin order and keeps project/session lifecycle worker-scoped', asy
   expect(current.sessions.map((session) => session.title)).toEqual(['New chat 1'])
   expect(current.pinnedSessionIds).toEqual([])
 
-  await page.getByRole('button', { name: /Actions for project/ }).click()
+  await page.getByTestId('project-list').locator('.project-row').first().click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Pin to Top' }).click()
   current = await page.evaluate(() =>
     (globalThis as unknown as { grokbuild: { bootstrap: () => Promise<import('../../src/shared/models').AppSnapshot> } })
@@ -484,14 +485,14 @@ test('persists pin order and keeps project/session lifecycle worker-scoped', asy
   )
   expect(current.pinnedProjectIds).toEqual([current.selectedProjectId])
 
-  await page.getByRole('button', { name: /Actions for project/ }).click()
+  await page.getByTestId('project-list').locator('.project-row').first().click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Remove Project' }).click()
   const confirmation = page.getByRole('alertdialog', { name: /Remove project/ })
   await expect(confirmation).toContainText('Files stay on disk')
   await confirmation.getByRole('button', { name: 'Cancel' }).click()
   await expect(page.getByTestId('project-list').locator('.project-group')).toHaveCount(1)
 
-  await page.getByRole('button', { name: /Actions for project/ }).click()
+  await page.getByTestId('project-list').locator('.project-row').first().click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Remove Project' }).click()
   await page.getByRole('alertdialog', { name: /Remove project/ })
     .getByRole('button', { name: 'Remove Project' }).click()
@@ -510,13 +511,13 @@ test('persists pin order and keeps project/session lifecycle worker-scoped', asy
 
 test('shows a current-project Dashboard with live status truth and a bounded Git projection', async () => {
   await startChat()
-  await page.getByRole('button', { name: 'Actions for session New chat 1', exact: true }).click()
+  await page.getByRole('button', { name: 'Open New chat 1', exact: true }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Duplicate Session' }).click()
   await expect(page.locator('.topbar-title')).toContainText('New chat 1 (copy)')
 
-  await page.getByRole('button', { name: 'Actions for session New chat 1', exact: true }).click()
+  await page.getByRole('button', { name: 'Open New chat 1', exact: true }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Mark as Unread' }).click()
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await expect(page.getByRole('menuitem', { name: 'Duplicate Session' })).toBeVisible()
   const dashboardTrigger = page.getByRole('button', { name: 'Dashboard' })
   await dashboardTrigger.click()
@@ -697,7 +698,7 @@ test('searches, restores, and natively confirms deletion of opaque CLI history e
 
 test('filters active chats and keeps unread and settled shelves distinct', async () => {
   await startChat()
-  await page.getByRole('button', { name: 'Actions for session New chat 1' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Duplicate Session' }).click()
   await expect(page.locator('.topbar-title')).toContainText('New chat 1 (copy)')
   const sessionIds = await page.evaluate(() => {
@@ -716,7 +717,7 @@ test('filters active chats and keeps unread and settled shelves distinct', async
 
   await page.getByTestId(`session-${originalSessionId}`).click()
   await expect(page.locator('.topbar-title')).toContainText('New chat 1')
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Mark as Unread' }).click()
   await expect(page.getByTestId(`session-${copiedSessionId}`)).toContainText('Completed')
 
@@ -725,7 +726,7 @@ test('filters active chats and keeps unread and settled shelves distinct', async
   await expect(page.getByTestId(`session-${copiedSessionId}`)).toBeVisible()
   await expect(page.getByTestId(`session-${originalSessionId}`)).toHaveCount(0)
 
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Settle Session' }).click()
   const settled = page.getByRole('region', { name: 'Settled sessions' })
   await expect(settled).toContainText('New chat 1 (copy)')
@@ -735,9 +736,9 @@ test('filters active chats and keeps unread and settled shelves distinct', async
   await expect(page.getByRole('button', { name: 'Show 1 settled session' })).toBeVisible()
   await page.getByRole('button', { name: 'Show 1 settled session' }).click()
   await expect(settled).toContainText('New chat 1 (copy)')
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Mark as Read' }).click()
-  await page.getByRole('button', { name: 'Actions for session New chat 1 (copy)' }).click()
+  await page.getByRole('button', { name: 'Open New chat 1 (copy)' }).click({ button: 'right' })
   await page.getByRole('menuitem', { name: 'Return to Active' }).click()
   await expect(page.getByRole('region', { name: 'Settled sessions' })).toHaveCount(0)
   await expect(page.getByTestId(`session-${copiedSessionId}`)).not.toContainText('Completed')

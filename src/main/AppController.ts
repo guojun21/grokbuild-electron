@@ -137,6 +137,13 @@ export interface AppControllerOptions {
   }
 }
 
+export class SessionReferenceUnavailableError extends Error {
+  constructor() {
+    super('This chat has no Grok session yet. Send a message first, then copy its id.')
+    this.name = 'SessionReferenceUnavailableError'
+  }
+}
+
 export const MAX_PINNED_PROJECTS = 5
 export const MAX_PINNED_SESSIONS = 20
 export const MAX_SETTLED_SESSIONS = 10_000
@@ -3043,6 +3050,20 @@ export class AppController extends EventEmitter<{
     if (!path) return rest
     const preview = this.options.generatedImagePreview?.(path)
     return { ...rest, image: preview ? { path, preview } : { path } }
+  }
+
+  /**
+   * Clipboard line that identifies a chat to Grok itself: the CLI's own
+   * session id plus the chat title. The id stays main-owned — it is not part
+   * of the public snapshot — so the composed text is what crosses to the
+   * clipboard, never the raw field.
+   */
+  sessionReference(sessionId: string): string {
+    const session = this.getSession(sessionId)
+    if (!session.acpSessionId) {
+      throw new SessionReferenceUnavailableError()
+    }
+    return `grok session id: "${session.acpSessionId}" ; name: "${session.title}"`
   }
 
   private getProject(projectId: string): ProjectSnapshot {

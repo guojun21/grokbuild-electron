@@ -19,7 +19,7 @@ test('forks once from the sidebar and only loads the child after restart', async
     await sendAndWait(page, 'seed the fork', 1)
 
     const source = selectedSession(await bootstrap(page))
-    await page.getByRole('button', { name: `Actions for session ${source.title}` }).click()
+    await page.getByRole('button', { name: `Open ${source.title}` }).click({ button: 'right' })
     const forkAction = page.getByRole('menuitem', { name: 'Fork Session' })
     await expect(forkAction).toBeEnabled()
     await forkAction.click()

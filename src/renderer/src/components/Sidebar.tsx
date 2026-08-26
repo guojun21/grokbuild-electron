@@ -13,7 +13,6 @@ import {
   Folder,
   GitFork,
   MessageSquare,
-  MoreHorizontal,
   Pencil,
   Pin,
   PinOff,
@@ -58,6 +57,8 @@ interface SidebarProps {
   onSetSessionPinned: (sessionId: string, pinned: boolean) => void
   onSetSessionSettled: (sessionId: string, settled: boolean) => void
   onSetSessionUnread: (sessionId: string, unread: boolean) => void
+  /** Copies the Grok-side session id and title for one chat to the clipboard. */
+  onCopySessionReference: (sessionId: string) => void
   onOpenSettings: () => void
   /** Rolling allowance summary for the bottom-left quota bar; absent hides it. */
   usage?: { percent: number; resetsAt: string; periodType?: 'weekly' | 'monthly' | 'other' | undefined } | undefined
@@ -84,6 +85,7 @@ export function Sidebar({
   onSetSessionPinned,
   onSetSessionSettled,
   onSetSessionUnread,
+  onCopySessionReference,
   onOpenSettings,
   usage,
   onOpenAccount
@@ -93,17 +95,24 @@ export function Sidebar({
   const [renamingSessionId, setRenamingSessionId] = useState<string>()
   const [renameDraft, setRenameDraft] = useState('')
 
-  // Fixed positioning keeps the menu above the scrollable shelves (pinned and
-  // settled lists clip absolutely-positioned children via overflow).
-  const toggleMenu = (event: React.MouseEvent<HTMLButtonElement>, menuId: MenuTarget): void => {
+  /**
+   * Rows open their action menu by right-click (and by the keyboard context
+   * key, which fires the same event with no pointer position — those anchor
+   * to the row instead). Fixed positioning keeps the menu above the
+   * scrollable shelves, whose overflow clips absolutely-positioned children.
+   */
+  const toggleMenu = (event: React.MouseEvent<HTMLElement>, menuId: MenuTarget): void => {
+    event.preventDefault()
+    event.stopPropagation()
     if (openMenu === menuId) {
       setOpenMenu(undefined)
       return
     }
     const rect = event.currentTarget.getBoundingClientRect()
+    const fromPointer = event.clientX > 0 || event.clientY > 0
     setMenuAnchor({
-      top: Math.min(rect.bottom + 2, window.innerHeight - 250),
-      right: Math.max(8, window.innerWidth - rect.right)
+      top: Math.min(fromPointer ? event.clientY : rect.bottom + 2, window.innerHeight - 250),
+      right: Math.max(8, window.innerWidth - (fromPointer ? event.clientX : rect.right))
     })
     setOpenMenu(menuId)
   }
@@ -240,6 +249,7 @@ export function Sidebar({
           className={`session-row ${session.id === snapshot.selectedSessionId ? 'selected' : ''}`}
           type="button"
           onClick={() => onSelectSession(session.id)}
+          onContextMenu={(event) => toggleMenu(event, menuId)}
           data-testid={testId}
           aria-label={`Open ${sessionName}`}
           title={`${sessionName}${agentName ? ` — ${agentName}` : ''}${pinned || settled ? ` — ${projectName}` : ''}${statusLabel ? ` — ${statusLabel}` : ''}`}
@@ -283,17 +293,17 @@ export function Sidebar({
             {statusLabel ? <span className={`session-status status-${session.activityStatus}`}>{statusLabel}</span> : null}
           </span>
         </button>
-        <button
-          className="row-menu-trigger"
-          type="button"
-          aria-label={`Actions for session ${sessionName}`}
-          aria-expanded={openMenu === menuId}
-          onClick={(event) => toggleMenu(event, menuId)}
-        >
-          <MoreHorizontal size={14} />
-        </button>
         {openMenu === menuId ? (
           <div className="row-action-menu" role="menu" aria-label={`Session actions for ${sessionName}`} style={menuAnchor ? { position: 'fixed', top: menuAnchor.top, right: menuAnchor.right } : undefined}>
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="copy-session-reference"
+              onClick={() => closeMenuThen(() => onCopySessionReference(session.id))}
+            >
+              <Copy size={13} /> Copy Session ID
+            </button>
+            <span className="menu-separator" />
             <button type="button" role="menuitem" onClick={() => closeMenuThen(() => onSetSessionPinned(session.id, !pinned))}>
               {pinned ? <PinOff size={13} /> : <Pin size={13} />}
               {pinned ? 'Unpin Session' : 'Pin Session'}
@@ -502,6 +512,7 @@ export function Sidebar({
                     aria-label={`Open ${displayProjectName}`}
                     title={privacy.path(project.path)}
                     onClick={() => onSelectProject(project.id)}
+                    onContextMenu={(event) => toggleMenu(event, menuId)}
                   >
                     <Folder size={15} strokeWidth={1.8} />
                     <span className="project-copy">
@@ -518,15 +529,6 @@ export function Sidebar({
                       ) : null}
                     </span>
                     {pinned ? <Pin className="pin-mark" size={11} aria-label="Pinned" /> : <ChevronDown size={14} />}
-                  </button>
-                  <button
-                    className="row-menu-trigger"
-                    type="button"
-                    aria-label={`Actions for project ${displayProjectName}`}
-                    aria-expanded={openMenu === menuId}
-                    onClick={(event) => toggleMenu(event, menuId)}
-                  >
-                    <MoreHorizontal size={14} />
                   </button>
                   {openMenu === menuId ? (
                     <div className="row-action-menu" role="menu" aria-label={`Project actions for ${displayProjectName}`} style={menuAnchor ? { position: 'fixed', top: menuAnchor.top, right: menuAnchor.right } : undefined}>

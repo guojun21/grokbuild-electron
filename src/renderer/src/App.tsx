@@ -526,6 +526,7 @@ export function App(): React.JSX.Element {
         onSetSessionPinned={(sessionId, pinned) => runAction(() => window.grokbuild.setSessionPinned({ sessionId, pinned }))}
         onSetSessionSettled={(sessionId, settled) => runAction(() => window.grokbuild.setSessionSettled({ sessionId, settled }))}
         onSetSessionUnread={(sessionId, unread) => runAction(() => window.grokbuild.setSessionUnread({ sessionId, unread }))}
+        onCopySessionReference={(sessionId) => runAction(() => window.grokbuild.copySessionReference({ sessionId }))}
         onOpenSettings={() => {
           setProjectOpenMenu(false)
           setDashboardOpen(false)
